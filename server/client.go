@@ -140,7 +140,15 @@ func (c *client) set(cmd command) {
 
 	key := cmd.args[1]
 	value := cmd.args[2]
-	expire := db.NeverExpire
+	expire := time.Duration(db.NeverExpire)
+
+	d, err := deserialise(value)
+
+	if err != nil {
+		c.log.Printf("ERROR: %s", err)
+		c.err(errors.New("Invalid input"))
+		return
+	}
 
 	// Check if a expiry is given
 	if argLen == 4 {
@@ -152,13 +160,12 @@ func (c *client) set(cmd command) {
 			return
 		}
 
-		item := db.NewItem(value, time.Duration(e)*time.Millisecond)
-		c.db.Set(key, item)
+		expire = time.Duration(e) * time.Millisecond
 		return
 	}
 
 	// Create item for insertion
-	item := db.NewItem(value, time.Duration(expire))
+	item := db.NewItem(d["input"], expire)
 	c.db.Set(key, item)
 	return
 }

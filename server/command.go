@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 )
@@ -59,4 +60,18 @@ func parse(args []string, cl *client) (command, error) {
 	default:
 		return command{}, errors.New("Unknown command: " + cmd)
 	}
+}
+
+// deserialise deserialises the passed json into a map.
+// It also ensures that the passed json has an "input" field
+func deserialise(input string) (map[string]interface{}, error) {
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(input), &data); err != nil {
+		return data, err
+	}
+
+	if _, ok := data["input"]; !ok {
+		return data, errors.New("No input field in the passed JSON")
+	}
+	return data, nil
 }
