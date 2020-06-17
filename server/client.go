@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"log"
 	"net"
@@ -15,8 +16,18 @@ type client struct {
 	isAuthenticated bool
 }
 
-// read reads the input of the TCP clients
-func (c *client) read() {
+// newClient returns a new client
+func newClient(conn net.Conn, cmd chan<- command, log *log.Logger, isAuthenticated bool) *client {
+	return &client{
+		conn:            conn,
+		commands:        cmd,
+		log:             log,
+		isAuthenticated: isAuthenticated,
+	}
+}
+
+// initRead reads the input of the TCP clients
+func (c *client) initRead(auth Auth) {
 	for {
 		// Read data from TCP client and parse it
 		data, err := bufio.NewReader(c.conn).ReadString('\n')
@@ -24,9 +35,9 @@ func (c *client) read() {
 		// Check for errors
 		if err != nil {
 			// If error is io.EOF then it indicates that the client has
-			// exited and hence closing the connection here
+			// disconnected and hence closing the connection here
 			if err == io.EOF {
-				c.log.Printf("Client %s exited", c.conn.RemoteAddr().String())
+				c.log.Printf("Client %s disconnected", c.conn.RemoteAddr().String())
 				c.conn.Close()
 				return
 			}
@@ -49,7 +60,8 @@ func (c *client) read() {
 		}
 
 		// Send the command to the server
-		c.commands <- cmd
+		// c.commands <- cmd
+		c.handleCommand(auth, cmd)
 	}
 }
 
@@ -61,4 +73,31 @@ func (c *client) msg(msg string) {
 // err sends an error message to the client
 func (c *client) err(err error) {
 	c.conn.Write([]byte("ERR: " + err.Error() + "\n"))
+}
+
+func (c *client) handleCommand(auth Auth, cmd command) {
+	// Check if the AUTH type command is sent
+	if cmd.id == cmdAuth && !c.isAuthenticated {
+
+		// Handle authentication
+		isAuthenticated, err := auth.HandleAuth(cmd.args)
+
+		if err != nil {
+			cmd.client.err(err)
+			return
+		}
+
+		// Set the authentication
+		cmd.client.isAuthenticated = isAuthenticated
+		// Respond with success
+		cmd.client.msg("Success")
+
+	}
+
+	// The commands will only be handled if the client is authenticated
+	if cmd.client.isAuthenticated {
+		c.log.Printf("Received: %v from %v", cmd.id, cmd.client.conn.RemoteAddr().String())
+	} else {
+		cmd.client.err(errors.New("Not authorized"))
+	}
 }
