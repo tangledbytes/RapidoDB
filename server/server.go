@@ -31,7 +31,7 @@ func (s *Server) Setup() {
 	// Setup the TCP server
 	listener, err := net.Listen("tcp", ":"+s.PORT)
 	if err != nil {
-		s.log.Fatalln(err)
+		s.log.Fatalf("Listen setup failed: %s", err)
 		return
 	}
 
