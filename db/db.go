@@ -6,17 +6,25 @@ import (
 )
 
 const (
-	// Default expiry of the item is set to "never expire"
-	defaultExpiry time.Duration = neverExpire
-	// Value of never expire
-	neverExpire = -1
+	// DefaultExpiry of the item is set to "never expire"
+	defaultExpiry time.Duration = NeverExpire
+	// NeverExpire is set to -1
+	NeverExpire = -1
 )
 
 // DB struct encapsualtes the database and its methods
 type DB struct {
-	*sync.RWMutex
+	sync.RWMutex
 	defaultExpiry time.Duration
 	data          map[string]Item
+}
+
+// New creates a new database and returns a pointer to it
+func New(defaultExpiry time.Duration) *DB {
+	return &DB{
+		defaultExpiry: defaultExpiry,
+		data:          make(map[string]Item),
+	}
 }
 
 // Set adds the value in the database

@@ -18,9 +18,9 @@ const (
 
 func main() {
 	// Get the port from the environment
-	PORT := getEnv("PORT", defaultPort)
-	PASS := getEnv("PASS", defaultPass)
-	USER := getEnv("USER", defaultUser)
+	PORT := getEnv("RAPIDO_PORT", defaultPort)
+	PASS := getEnv("RAPIDO_PASS", defaultPass)
+	USER := getEnv("RAPIDO_USER", defaultUser)
 
 	// Instantiate the TCP server
 	s := server.New(log.New(os.Stdout, "[SERVER]: ", log.LstdFlags), PORT, USER, PASS)

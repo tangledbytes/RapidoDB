@@ -11,7 +11,7 @@ type Auth struct {
 
 // HandleAuth extracts the user and pass from the command
 // and check it against the passed user and pass
-func (s *Auth) HandleAuth(cmdString []string) (bool, error) {
+func (a Auth) HandleAuth(cmdString []string) (bool, error) {
 	// Check if the command length is 3
 	// AUTH <user> <pass>
 	if len(cmdString) != 3 {
@@ -22,7 +22,7 @@ func (s *Auth) HandleAuth(cmdString []string) (bool, error) {
 	user := cmdString[1]
 	pass := cmdString[2]
 
-	if user == s.user && pass == s.pass {
+	if user == a.user && pass == a.pass {
 		return true, nil
 	}
 

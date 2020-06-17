@@ -3,6 +3,8 @@ package server
 import (
 	"log"
 	"net"
+
+	"github.com/utkarsh-pro/RapidoDB/db"
 )
 
 // Server is a struct
@@ -11,6 +13,7 @@ type Server struct {
 	log      *log.Logger
 	PORT     string
 	auth     Auth
+	db       *db.DB
 }
 
 // New returns a an instance of server
@@ -23,6 +26,7 @@ func New(l *log.Logger, PORT string, user string, pass string) *Server {
 			user: user,
 			pass: pass,
 		},
+		db: db.New(db.NeverExpire),
 	}
 }
 
@@ -62,7 +66,7 @@ func (s *Server) clientHandler(c net.Conn) {
 	s.log.Println("Connected: ", c.RemoteAddr().String())
 
 	// Create a client
-	cl := newClient(c, s.commands, s.log, false)
+	cl := newClient(c, s.commands, s.log, false, s.db)
 
 	// Inform the client about the connection
 	cl.msg("Successfully connected to RapidoDB. Please run AUTH <user> <pass> to access the DB")

@@ -3,10 +3,15 @@ package server
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/utkarsh-pro/RapidoDB/db"
 )
 
 type client struct {
@@ -14,15 +19,17 @@ type client struct {
 	commands        chan<- command
 	log             *log.Logger
 	isAuthenticated bool
+	db              *db.DB
 }
 
 // newClient returns a new client
-func newClient(conn net.Conn, cmd chan<- command, log *log.Logger, isAuthenticated bool) *client {
+func newClient(conn net.Conn, cmd chan<- command, log *log.Logger, isAuthenticated bool, db *db.DB) *client {
 	return &client{
 		conn:            conn,
 		commands:        cmd,
 		log:             log,
 		isAuthenticated: isAuthenticated,
+		db:              db,
 	}
 }
 
@@ -75,6 +82,10 @@ func (c *client) err(err error) {
 	c.conn.Write([]byte("ERR: " + err.Error() + "\n"))
 }
 
+// handleCommand checks for authentication of the client
+//
+// It exclusively handles "AUTH" commands and passes on other commands
+// to "authorizedCommandHandler"
 func (c *client) handleCommand(auth Auth, cmd command) {
 	// Check if the AUTH type command is sent
 	if cmd.id == cmdAuth && !c.isAuthenticated {
@@ -91,13 +102,76 @@ func (c *client) handleCommand(auth Auth, cmd command) {
 		cmd.client.isAuthenticated = isAuthenticated
 		// Respond with success
 		cmd.client.msg("Success")
-
+		return
 	}
 
 	// The commands will only be handled if the client is authenticated
 	if cmd.client.isAuthenticated {
 		c.log.Printf("Received: %v from %v", cmd.id, cmd.client.conn.RemoteAddr().String())
+		c.authorizedCommandHandler(cmd)
 	} else {
 		cmd.client.err(errors.New("Not authorized"))
 	}
+}
+
+// authorizedCommandHandler handles authorized commands
+// hence this method should only be called when the authorization
+// of the client is guaranteed
+func (c *client) authorizedCommandHandler(cmd command) {
+	switch cmd.id {
+	case cmdSet:
+		c.set(cmd)
+	case cmdGet:
+		c.get(cmd)
+	default:
+		c.err(errors.New("Invalid command"))
+	}
+}
+
+func (c *client) set(cmd command) {
+	// set command looks like
+	// SET <key> <value> [expiry in ms]
+	argLen := len(cmd.args)
+
+	if argLen < 3 {
+		c.err(errors.New("Invalid SET command\n\tSYNTAX: SET <key> <value> [expiry in milliseconds]"))
+		return
+	}
+
+	key := cmd.args[1]
+	value := cmd.args[2]
+	expire := db.NeverExpire
+
+	// Check if a expiry is given
+	if argLen == 4 {
+		e, err := strconv.Atoi(cmd.args[3])
+
+		if err != nil {
+			c.log.Println("ERROR: Invalid expiry provided")
+			c.err(err)
+			return
+		}
+
+		item := db.NewItem(value, time.Duration(e)*time.Millisecond)
+		c.db.Set(key, item)
+		return
+	}
+
+	// Create item for insertion
+	item := db.NewItem(value, time.Duration(expire))
+	c.db.Set(key, item)
+	return
+}
+
+func (c *client) get(cmd command) {
+	// get command looks like
+	// GET <key>
+	argLen := len(cmd.args)
+
+	if argLen < 2 {
+		c.err(errors.New("Invalid GET command\n\tSYNTAX: GET <key>"))
+		return
+	}
+
+	c.msg(fmt.Sprintf("Value: %v", c.db.Get(cmd.args[1])))
 }

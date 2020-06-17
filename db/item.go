@@ -10,8 +10,8 @@ type Item struct {
 
 // NewItem creates a new item and returns it
 func NewItem(data interface{}, expireIn time.Duration) Item {
-	var expiry int64 = neverExpire
-	if expireIn != neverExpire {
+	var expiry int64 = NeverExpire
+	if expireIn != NeverExpire {
 		expiry = time.Now().Add(expireIn).UnixNano()
 	}
 
@@ -23,7 +23,7 @@ func NewItem(data interface{}, expireIn time.Duration) Item {
 
 // IsExpired checks if a item is expired
 func (item Item) IsExpired() bool {
-	if item.expireAt == neverExpire {
+	if item.expireAt == NeverExpire {
 		return false
 	}
 
