@@ -9,19 +9,17 @@ import (
 )
 
 type client struct {
-	conn     net.Conn
-	commands chan<- command
-	log      *log.Logger
+	conn            net.Conn
+	commands        chan<- command
+	log             *log.Logger
+	isAuthenticated bool
 }
 
 // read reads the input of the TCP clients
 func (c *client) read() {
 	for {
 		// Read data from TCP client and parse it
-		data, err := bufio.NewReader(c.conn).ReadString(';')
-
-		// Log the received data
-		c.log.Printf("Received from %s: %v", c.conn.RemoteAddr().String(), data)
+		data, err := bufio.NewReader(c.conn).ReadString('\n')
 
 		// Check for errors
 		if err != nil {
@@ -38,23 +36,26 @@ func (c *client) read() {
 			return
 		}
 
-		// Parse the command
-		cmd, err := parse(strings.Split(data[:len(data)-1], " "), c)
+		// Trim the data
+		data = strings.Trim(data, "\n")
+
+		// Parse the commands
+		cmd, err := parse(strings.Split(data, " "), c)
 
 		if err != nil {
-			// Send error to the client of the message is not known
+			// Send error to the client if the command is not known
 			c.err(err)
 			continue
 		}
 
-		// Send the parsed command to the channel
+		// Send the command to the server
 		c.commands <- cmd
 	}
 }
 
 // msg sends a message to the client
 func (c *client) msg(msg string) {
-	c.conn.Write([]byte(msg))
+	c.conn.Write([]byte(msg + "\n"))
 }
 
 // err sends an error message to the client

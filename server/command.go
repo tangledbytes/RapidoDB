@@ -1,6 +1,9 @@
 package server
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type commandID int
 
@@ -9,6 +12,7 @@ const (
 	cmdGet
 	cmdDelete
 	cmdQuit
+	cmdAuth
 )
 
 type command struct {
@@ -19,7 +23,7 @@ type command struct {
 
 // Parse the commands sent by the client
 func parse(args []string, cl *client) (command, error) {
-	cmd := args[0]
+	cmd := strings.ToLower(args[0])
 
 	switch cmd {
 	case "set":
@@ -43,6 +47,12 @@ func parse(args []string, cl *client) (command, error) {
 	case "quit":
 		return command{
 			id:     cmdQuit,
+			args:   args,
+			client: cl,
+		}, nil
+	case "auth":
+		return command{
+			id:     cmdAuth,
 			args:   args,
 			client: cl,
 		}, nil
