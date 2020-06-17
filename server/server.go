@@ -43,7 +43,7 @@ func (s *Server) Setup() {
 	s.log.Println("Started server on PORT", s.PORT)
 
 	// Start listening to the commands sent by the clients
-	go s.listenCommands()
+	go s.listenCommand()
 
 	// An infinite loop to listen for any number of TCP clients
 	for {
@@ -75,9 +75,9 @@ func (s *Server) clientHandler(c net.Conn) {
 	cl.initRead(s.auth)
 }
 
-// listenCommands listens for the commands passed on to the
+// listenCommand listens for the commands passed on to the
 // client channels to the server
-func (s *Server) listenCommands() {
+func (s *Server) listenCommand() {
 	for cmd := range s.commands {
 		s.log.Println(cmd)
 	}
