@@ -290,20 +290,20 @@ func lexKeyword(source string, ic cursor) (*token, cursor, bool) {
 // longestMatch iterates through a source string starting at the given
 // cursor to find the longest matching substring among the provided
 // options
-func longestMatch(source string, ic cursor, options []string) string {
-	var value []byte
+func longestMatch(src string, ic cursor, opts []string) string {
+	var val []byte
 	var skipList []int
 	var match string
 
 	cur := ic
 
-	for cur.ptr < uint(len(source)) {
+	for cur.ptr < uint(len(src)) {
 
-		value = append(value, strings.ToLower(string(source[cur.ptr]))...)
+		val = append(val, strings.ToLower(string(src[cur.ptr]))...)
 		cur.ptr++
 
 	match:
-		for i, option := range options {
+		for i, opt := range opts {
 			for _, skip := range skipList {
 				if i == skip {
 					continue match
@@ -311,23 +311,23 @@ func longestMatch(source string, ic cursor, options []string) string {
 			}
 
 			// Deal with cases like INT vs INTO
-			if option == string(value) {
+			if opt == string(val) {
 				skipList = append(skipList, i)
-				if len(option) > len(match) {
-					match = option
+				if len(opt) > len(match) {
+					match = opt
 				}
 
 				continue
 			}
 
-			sharesPrefix := string(value) == option[:cur.ptr-ic.ptr]
-			tooLong := len(value) > len(option)
+			sharesPrefix := string(val) == opt[:cur.ptr-ic.ptr]
+			tooLong := len(val) > len(opt)
 			if tooLong || !sharesPrefix {
 				skipList = append(skipList, i)
 			}
 		}
 
-		if len(skipList) == len(options) {
+		if len(skipList) == len(opts) {
 			break
 		}
 	}
