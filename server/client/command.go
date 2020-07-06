@@ -1,4 +1,4 @@
-package server
+package client
 
 import (
 	"encoding/json"
@@ -9,56 +9,62 @@ import (
 type commandID int
 
 const (
-	cmdSet commandID = iota
-	cmdGet
-	cmdDelete
-	cmdQuit
-	cmdAuth
+	// CmdSet represents the SET command
+	CmdSet commandID = iota
+	// CmdGet represents the GET command
+	CmdGet
+	// CmdDelete represents the DELETE command
+	CmdDelete
+	// CmdQuit represents the QUIT command
+	CmdQuit
+	// CmdAuth represents the AUTH command
+	CmdAuth
 )
 
-type command struct {
+// Command represents the command sent by the client
+type Command struct {
 	id     commandID
-	client *client
+	client *Client
 	args   []string
 }
 
-// Parse the commands sent by the client
-func parse(args []string, cl *client) (command, error) {
+// Parse parses the commands sent by the client
+func Parse(args []string, cl *Client) (Command, error) {
 	cmd := strings.ToLower(args[0])
 
 	switch cmd {
 	case "set":
-		return command{
-			id:     cmdSet,
+		return Command{
+			id:     CmdSet,
 			args:   args,
 			client: cl,
 		}, nil
 	case "get":
-		return command{
-			id:     cmdGet,
+		return Command{
+			id:     CmdGet,
 			args:   args,
 			client: cl,
 		}, nil
 	case "delete":
-		return command{
-			id:     cmdDelete,
+		return Command{
+			id:     CmdDelete,
 			args:   args,
 			client: cl,
 		}, nil
 	case "quit":
-		return command{
-			id:     cmdQuit,
+		return Command{
+			id:     CmdQuit,
 			args:   args,
 			client: cl,
 		}, nil
 	case "auth":
-		return command{
-			id:     cmdAuth,
+		return Command{
+			id:     CmdAuth,
 			args:   args,
 			client: cl,
 		}, nil
 	default:
-		return command{}, errors.New("Unknown command: " + cmd)
+		return Command{}, errors.New("Unknown command: " + cmd)
 	}
 }
 

@@ -1,13 +1,20 @@
-package server
+package client
 
 import "errors"
 
 // Auth struct holds the user
 // and pass of the current server
 type Auth struct {
-	user string
-	pass string
+	User string
+	Pass string
 }
+
+const (
+	// NotAuthenticated indicates that the user is not authenticated
+	NotAuthenticated = false
+	// Authenticated indicates that the user is authenticated
+	Authenticated = true
+)
 
 // HandleAuth extracts the user and pass from the command
 // and check it against the passed user and pass
@@ -22,7 +29,7 @@ func (a Auth) HandleAuth(cmdString []string) (bool, error) {
 	user := cmdString[1]
 	pass := cmdString[2]
 
-	if user == a.user && pass == a.pass {
+	if user == a.User && pass == a.Pass {
 		return true, nil
 	}
 

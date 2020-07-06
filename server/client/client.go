@@ -1,4 +1,4 @@
-package server
+package client
 
 import (
 	"bufio"
@@ -14,17 +14,19 @@ import (
 	"github.com/utkarsh-pro/RapidoDB/db"
 )
 
-type client struct {
+// Client represents an active TCP client communicating
+// with the server
+type Client struct {
 	conn            net.Conn
-	commands        chan<- command
+	commands        chan<- Command
 	log             *log.Logger
 	isAuthenticated bool
 	db              *db.DB
 }
 
-// newClient returns a new client
-func newClient(conn net.Conn, cmd chan<- command, log *log.Logger, isAuthenticated bool, db *db.DB) *client {
-	return &client{
+// NewClient returns a new client
+func NewClient(conn net.Conn, cmd chan<- Command, log *log.Logger, isAuthenticated bool, db *db.DB) *Client {
+	return &Client{
 		conn:            conn,
 		commands:        cmd,
 		log:             log,
@@ -33,8 +35,8 @@ func newClient(conn net.Conn, cmd chan<- command, log *log.Logger, isAuthenticat
 	}
 }
 
-// initRead reads the input of the TCP clients
-func (c *client) initRead(auth Auth) {
+// InitRead reads the input of the TCP clients
+func (c *Client) InitRead(auth Auth) {
 	for {
 		// Read data from TCP client and parse it
 		data, err := bufio.NewReader(c.conn).ReadString('\n')
@@ -58,11 +60,11 @@ func (c *client) initRead(auth Auth) {
 		data = strings.Trim(data, "\n")
 
 		// Parse the commands
-		cmd, err := parse(strings.Split(data, " "), c)
+		cmd, err := Parse(strings.Split(data, " "), c)
 
 		if err != nil {
 			// Send error to the client if the command is not known
-			c.err(err)
+			c.Err(err)
 			continue
 		}
 
@@ -72,13 +74,13 @@ func (c *client) initRead(auth Auth) {
 	}
 }
 
-// msg sends a message to the client
-func (c *client) msg(msg string) {
+// Msg sends a message to the client
+func (c *Client) Msg(msg string) {
 	c.conn.Write([]byte(msg + "\n"))
 }
 
-// err sends an error message to the client
-func (c *client) err(err error) {
+// Err sends an error message to the client
+func (c *Client) Err(err error) {
 	c.conn.Write([]byte("ERR: " + err.Error() + "\n"))
 }
 
@@ -86,22 +88,22 @@ func (c *client) err(err error) {
 //
 // It exclusively handles "AUTH" commands and passes on other commands
 // to "authorizedCommandHandler"
-func (c *client) handleCommand(auth Auth, cmd command) {
+func (c *Client) handleCommand(auth Auth, cmd Command) {
 	// Check if the AUTH type command is sent
-	if cmd.id == cmdAuth && !c.isAuthenticated {
+	if cmd.id == CmdAuth && !c.isAuthenticated {
 
 		// Handle authentication
 		isAuthenticated, err := auth.HandleAuth(cmd.args)
 
 		if err != nil {
-			cmd.client.err(err)
+			cmd.client.Err(err)
 			return
 		}
 
 		// Set the authentication
 		cmd.client.isAuthenticated = isAuthenticated
 		// Respond with success
-		cmd.client.msg("Success")
+		cmd.client.Msg("Success")
 		return
 	}
 
@@ -110,31 +112,31 @@ func (c *client) handleCommand(auth Auth, cmd command) {
 		c.log.Printf("Received: %v from %v", cmd.id, cmd.client.conn.RemoteAddr().String())
 		c.authorizedCommandHandler(cmd)
 	} else {
-		cmd.client.err(errors.New("Not authorized"))
+		cmd.client.Err(errors.New("Not authorized"))
 	}
 }
 
 // authorizedCommandHandler handles authorized commands
 // hence this method should only be called when the authorization
 // of the client is guaranteed
-func (c *client) authorizedCommandHandler(cmd command) {
+func (c *Client) authorizedCommandHandler(cmd Command) {
 	switch cmd.id {
-	case cmdSet:
+	case CmdSet:
 		c.set(cmd)
-	case cmdGet:
+	case CmdGet:
 		c.get(cmd)
 	default:
-		c.err(errors.New("Invalid command"))
+		c.Err(errors.New("Invalid command"))
 	}
 }
 
-func (c *client) set(cmd command) {
+func (c *Client) set(cmd Command) {
 	// set command looks like
 	// SET <key> <value> [expiry in ms]
 	argLen := len(cmd.args)
 
 	if argLen < 3 {
-		c.err(errors.New("Invalid SET command\n\tSYNTAX: SET <key> <value> [expiry in milliseconds]"))
+		c.Err(errors.New("Invalid SET command\n\tSYNTAX: SET <key> <value> [expiry in milliseconds]"))
 		return
 	}
 
@@ -146,7 +148,7 @@ func (c *client) set(cmd command) {
 
 	if err != nil {
 		c.log.Printf("ERROR: %s", err)
-		c.err(errors.New("Invalid input"))
+		c.Err(errors.New("Invalid input"))
 		return
 	}
 
@@ -156,7 +158,7 @@ func (c *client) set(cmd command) {
 
 		if err != nil {
 			c.log.Println("ERROR: Invalid expiry provided")
-			c.err(err)
+			c.Err(err)
 			return
 		}
 
@@ -170,15 +172,15 @@ func (c *client) set(cmd command) {
 	return
 }
 
-func (c *client) get(cmd command) {
+func (c *Client) get(cmd Command) {
 	// get command looks like
 	// GET <key>
 	argLen := len(cmd.args)
 
 	if argLen < 2 {
-		c.err(errors.New("Invalid GET command\n\tSYNTAX: GET <key>"))
+		c.Err(errors.New("Invalid GET command\n\tSYNTAX: GET <key>"))
 		return
 	}
 
-	c.msg(fmt.Sprintf("Value: %v", c.db.Get(cmd.args[1])))
+	c.Msg(fmt.Sprintf("Value: %v", c.db.Get(cmd.args[1])))
 }
