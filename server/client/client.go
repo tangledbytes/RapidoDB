@@ -57,7 +57,7 @@ func (c *Client) InitRead(auth Auth) {
 		}
 
 		// Trim the data
-		data = strings.Trim(data, "\n")
+		data = strings.TrimSpace(data)
 
 		// Parse the commands
 		cmd, err := Parse(strings.Split(data, " "), c)
@@ -142,7 +142,7 @@ func (c *Client) set(cmd Command) {
 
 	key := cmd.args[1]
 	value := cmd.args[2]
-	expire := time.Duration(db.NeverExpire)
+	expire := c.db.DefaultExpiry
 
 	d, err := deserialise(value)
 
@@ -166,9 +166,7 @@ func (c *Client) set(cmd Command) {
 		return
 	}
 
-	// Create item for insertion
-	item := db.NewItem(d["input"], expire)
-	c.db.Set(key, item)
+	c.db.Set(key, d["input"], expire)
 	return
 }
 

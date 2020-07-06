@@ -15,23 +15,25 @@ const (
 // DB struct encapsualtes the database and its methods
 type DB struct {
 	sync.RWMutex
-	defaultExpiry time.Duration
+	// DefaultExpiry is the default time when
+	// an item in the database will expire
+	DefaultExpiry time.Duration
 	data          map[string]Item
 }
 
 // New creates a new database and returns a pointer to it
 func New(defaultExpiry time.Duration) *DB {
 	return &DB{
-		defaultExpiry: defaultExpiry,
+		DefaultExpiry: defaultExpiry,
 		data:          make(map[string]Item),
 	}
 }
 
 // Set adds the value in the database
-func (db *DB) Set(key string, value Item) {
+func (db *DB) Set(key string, data interface{}, expireIn time.Duration) {
 	// Lock the map
 	db.Lock()
-	db.data[key] = value
+	db.data[key] = newItem(data, expireIn)
 	// Unlock
 	db.Unlock()
 }
@@ -40,8 +42,9 @@ func (db *DB) Set(key string, value Item) {
 // If the data doesn't exists then it returns "nil"
 func (db *DB) Get(key string) interface{} {
 	db.RLock()
+
 	item, ok := db.data[key]
-	if !ok || item.IsExpired() {
+	if !ok || item.isExpired() {
 		db.RUnlock()
 		return nil
 	}

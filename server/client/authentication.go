@@ -33,5 +33,5 @@ func (a Auth) HandleAuth(cmdString []string) (bool, error) {
 		return true, nil
 	}
 
-	return false, errors.New("Invalid Credentials")
+	return false, errors.New("Invalid credentials")
 }

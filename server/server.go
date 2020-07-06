@@ -36,6 +36,7 @@ func New(l *log.Logger, PORT, user, pass string) *Server {
 func (s *Server) Setup() {
 
 	listener := s.setupTCPServer()
+	defer listener.Close()
 
 	// Start listening to the commands sent by the clients
 	go s.listenCommand()
@@ -50,13 +51,12 @@ func (s *Server) setupTCPServer() net.Listener {
 		s.log.Fatalf("Listen setup failed: %s", err)
 	}
 
-	defer listener.Close()
 	s.log.Println("Started server on PORT", s.PORT)
 
 	return listener
 }
 
-// setupTCPCkientHandler sets up the TCP client handlers as the
+// setupTCPClientHandler sets up the TCP client handlers as the
 // connection requests comes in to the server
 func (s *Server) setupTCPClientHandler(listener net.Listener) {
 	// An infinite loop to listen for any number of TCP clients
