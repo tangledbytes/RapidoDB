@@ -4,19 +4,19 @@ package security
 type Access uint
 
 const (
-	// READ access type indicates that a user
+	// READ_ACCESS access type indicates that a user
 	// has only read access to the database
-	READ Access = iota
+	READ_ACCESS Access = iota
 
-	// WRITE access type indicates that a user
+	// WRITE_ACCESS access type indicates that a user
 	// has only write access to the database
-	WRITE
+	WRITE_ACCESS
 
-	// WIPE access type indicated that a user
+	// WIPE_ACCESS access type indicated that a user
 	// can wipe out the database
-	WIPE
+	WIPE_ACCESS
 
-	// ADMIN access type indicated that a user
+	// ADMIN_ACCESS access type indicated that a user
 	// is an admin and hence can perform all of the above tasks
-	ADMIN
+	ADMIN_ACCESS
 )
