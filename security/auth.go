@@ -11,8 +11,8 @@ type Auth struct {
 }
 
 // Register function registers a new authentication detail and returns the auth object
-func Register(username string, password string, access []Access) Auth {
-	return Auth{username, password, access, false}
+func Register(username string, password string, access []Access) *Auth {
+	return &Auth{username, password, access, false}
 }
 
 // Authenticate authenticates a user but does not handles authorization
