@@ -1,5 +1,7 @@
 package rql
 
+import "fmt"
+
 // ================================ TYPES ================================
 
 // Ast stands for the abstract syntax tree. Here it is implemented as
@@ -15,23 +17,24 @@ type Statement struct {
 	DeleteStatement *DeleteStatement
 	AuthStatement   *AuthStatement
 	WipeStatement   *WipeStatement
-	Stype           AstType
+	typ             AstType
 }
 
 // SetStatement contains the structure for a "SET" command
 type SetStatement struct {
-	key    token
-	values *[]*expression
+	key string
+	val interface{}
+	exp uint
 }
 
 // GetStatement contains the structure for a "GET" command
 type GetStatement struct {
-	key token
+	keys []string
 }
 
 // DeleteStatement contains the structure for a "DELETE" command
 type DeleteStatement struct {
-	key token
+	keys []string
 }
 
 // AuthStatement contains the structure for a "AUTH" command
@@ -56,7 +59,7 @@ type binaryExpression struct {
 type expression struct {
 	literal *token
 	binary  *binaryExpression
-	etype   expressionType
+	typ     expressionType
 }
 
 type expressionType uint
@@ -76,3 +79,13 @@ const (
 	AuthType
 	WipeType
 )
+
+func (a Ast) String() string {
+	s := "[ "
+	for _, stmt := range a.Statements {
+		s += fmt.Sprintf("%+v", stmt.SetStatement)
+		s += fmt.Sprintf("%+v", stmt.GetStatement)
+	}
+
+	return s + " ]"
+}

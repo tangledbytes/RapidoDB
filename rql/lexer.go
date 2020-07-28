@@ -28,9 +28,9 @@ type location struct {
 }
 
 type token struct {
-	val   string
-	ttype tokenType
-	loc   location
+	val string
+	typ tokenType
+	loc location
 }
 
 type cursor struct {
@@ -184,9 +184,9 @@ func lexKeyword(source string, ic cursor) (*token, cursor, bool) {
 	ttype := keywordType
 
 	return &token{
-		val:   match,
-		ttype: ttype,
-		loc:   ic.loc,
+		val: match,
+		typ: ttype,
+		loc: ic.loc,
 	}, cur, true
 }
 
@@ -245,9 +245,9 @@ func lexSymbol(source string, ic cursor) (*token, cursor, bool) {
 	cur.loc.col = ic.loc.col + uint(len(match))
 
 	return &token{
-		val:   match,
-		loc:   ic.loc,
-		ttype: symbolType,
+		val: match,
+		loc: ic.loc,
+		typ: symbolType,
 	}, cur, true
 }
 
@@ -333,9 +333,9 @@ func lexNumeric(src string, ic cursor) (*token, cursor, bool) {
 	}
 
 	return &token{
-		val:   src[ic.ptr:cur.ptr],
-		loc:   ic.loc,
-		ttype: numericType,
+		val: src[ic.ptr:cur.ptr],
+		loc: ic.loc,
+		typ: numericType,
 	}, cur, true
 }
 
@@ -374,9 +374,9 @@ func lexIdentifier(source string, ic cursor) (*token, cursor, bool) {
 
 	return &token{
 		// all identifiers are case sensitive
-		val:   string(value),
-		loc:   ic.loc,
-		ttype: identifierType,
+		val: string(value),
+		loc: ic.loc,
+		typ: identifierType,
 	}, cur, true
 }
 
@@ -406,9 +406,9 @@ func lexCharacterDelimited(src string, ic cursor, delimiter byte) (*token, curso
 				cur.ptr++
 				cur.loc.col++
 				return &token{
-					val:   string(val),
-					loc:   ic.loc,
-					ttype: stringType,
+					val: string(val),
+					loc: ic.loc,
+					typ: stringType,
 				}, cur, true
 			}
 
@@ -475,13 +475,13 @@ func longestMatch(src string, ic cursor, opts []string) string {
 // equals returns true if passed token has the same value
 // and token type as of the current token
 func (t *token) equals(other *token) bool {
-	return t.val == other.val && t.ttype == other.ttype
+	return t.val == other.val && t.typ == other.typ
 }
 
 // ================ HELPER FUNCTIONS (ONLY FOR DEBUGGING) ======================
 
 func (t token) String() string {
-	return fmt.Sprintf("val: %s, type: %d, location: %v\n", t.val, t.ttype, t.loc)
+	return fmt.Sprintf("val: %s, type: %d, location: %v\n", t.val, t.typ, t.loc)
 }
 
 func (l location) String() string {
