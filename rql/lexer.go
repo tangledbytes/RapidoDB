@@ -132,7 +132,7 @@ lex:
 
 		// Print all the tokens extracted uptil that point
 		for _, t := range tokens {
-			fmt.Println(t.val)
+			fmt.Println(t)
 		}
 
 		return nil, fmt.Errorf("Unable to lex token %s, at %d %d", hint, cur.loc.line, cur.loc.col)
@@ -403,6 +403,8 @@ func lexCharacterDelimited(src string, ic cursor, delimiter byte) (*token, curso
 		if ch == delimiter {
 			// Unlike SQL, RQL will escape characters with backslash
 			if cur.ptr+1 >= uint(len(src)) || src[cur.ptr+1] != '\\' {
+				cur.ptr++
+				cur.loc.col++
 				return &token{
 					val:   string(val),
 					loc:   ic.loc,
@@ -474,4 +476,14 @@ func longestMatch(src string, ic cursor, opts []string) string {
 // and token type as of the current token
 func (t *token) equals(other *token) bool {
 	return t.val == other.val && t.ttype == other.ttype
+}
+
+// ================ HELPER FUNCTIONS (ONLY FOR DEBUGGING) ======================
+
+func (t token) String() string {
+	return fmt.Sprintf("val: %s, type: %d, location: %v\n", t.val, t.ttype, t.loc)
+}
+
+func (l location) String() string {
+	return fmt.Sprintf("[ line: %d, col: %d ]", l.line, l.col)
 }
