@@ -37,6 +37,24 @@ func Test_lex(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"GET",
+			args{`GET data`},
+			[]*token{
+				&token{"get", keywordType, location{0, 0}},
+				&token{"data", identifierType, location{0, 4}},
+			},
+			false,
+		},
+		{
+			"DELETE",
+			args{`DEL data`},
+			[]*token{
+				&token{"del", keywordType, location{0, 0}},
+				&token{"data", identifierType, location{0, 4}},
+			},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
