@@ -17,7 +17,7 @@ type Statement struct {
 	DeleteStatement *DeleteStatement
 	AuthStatement   *AuthStatement
 	WipeStatement   *WipeStatement
-	typ             AstType
+	Typ             AstType
 }
 
 // SetStatement contains the structure for a "SET" command
@@ -79,6 +79,8 @@ const (
 	AuthType
 	WipeType
 )
+
+// ===========================================================================
 
 func (a Ast) String() string {
 	s := "[ "

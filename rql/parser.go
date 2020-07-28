@@ -101,7 +101,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	set, newCursor, ok := parseSetStatement(tokens, cursor, semicolonToken)
 	if ok {
 		return &Statement{
-			typ:          SetType,
+			Typ:          SetType,
 			SetStatement: set,
 		}, newCursor, true
 	}
@@ -110,7 +110,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	get, newCursor, ok := parseGetStatement(tokens, cursor, semicolonToken)
 	if ok {
 		return &Statement{
-			typ:          GetType,
+			Typ:          GetType,
 			GetStatement: get,
 		}, newCursor, true
 	}
@@ -119,7 +119,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	del, newCursor, ok := parseDeleteStatement(tokens, cursor, semicolonToken)
 	if ok {
 		return &Statement{
-			typ:             DeleteType,
+			Typ:             DeleteType,
 			DeleteStatement: del,
 		}, newCursor, true
 	}
