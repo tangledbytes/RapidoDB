@@ -113,12 +113,21 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 		}, newCursor, true, err
 	}
 
-	// Look for a DELETE statement
+	// Look for a DEL statement
 	del, newCursor, ok, err := parseDeleteStatement(tokens, cursor, semicolonToken)
 	if ok || err != nil {
 		return &Statement{
 			Typ:             DeleteType,
 			DeleteStatement: del,
+		}, newCursor, true, err
+	}
+
+	// Look for a AUTH statement
+	auth, newCursor, ok, err := parseAuthStatement(tokens, cursor, semicolonToken)
+	if ok || err != nil {
+		return &Statement{
+			Typ:           AuthType,
+			AuthStatement: auth,
 		}, newCursor, true, err
 	}
 
@@ -221,6 +230,33 @@ func parseDeleteStatement(tokens []*token, initialCursor uint, delimiter token) 
 		keys = append(keys, key.val)
 		cursor = newCursor
 	}
+}
+
+func parseAuthStatement(tokens []*token, initialCursor uint, delimiter token) (*AuthStatement, uint, bool, error) {
+	// AUTH <username> <password>
+	cursor := initialCursor
+
+	// Look for the AUTH keyword
+	if !expectToken(tokens, cursor, tokenFromKeyword(authKeyword)) {
+		return nil, initialCursor, false, nil
+	}
+	cursor++
+
+	// Look for the username
+	username, newCursor, ok := parseToken(tokens, cursor, identifierType)
+	if !ok {
+		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "username not found"))
+	}
+	cursor = newCursor
+
+	// Look for the password
+	password, newCursor, ok := parseToken(tokens, cursor, identifierType)
+	if !ok {
+		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "password not found"))
+	}
+	cursor = newCursor
+
+	return &AuthStatement{username.val, password.val}, cursor, true, nil
 }
 
 func parseExpression(tokens []*token, initialCursor uint) (*token, uint, bool) {

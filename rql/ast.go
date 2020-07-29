@@ -32,15 +32,15 @@ type GetStatement struct {
 	keys []string
 }
 
-// DeleteStatement contains the structure for a "DELETE" command
+// DeleteStatement contains the structure for a "DEL" command
 type DeleteStatement struct {
 	keys []string
 }
 
 // AuthStatement contains the structure for a "AUTH" command
 type AuthStatement struct {
-	username token
-	password token
+	username string
+	password string
 }
 
 // WipeStatement contains the structure for a "WIPE" command

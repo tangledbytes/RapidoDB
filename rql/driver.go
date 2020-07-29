@@ -11,6 +11,7 @@ import (
 type SecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration)
 	Get(key string) (interface{}, bool)
+	Authenticate(username string, password string) bool
 }
 
 // Driver is the RQL driver which acts as an interface between a database client and
@@ -37,6 +38,9 @@ func New(db SecureDB) *Driver {
 func (d *Driver) Operate(src string, w io.Writer) {
 	// Parse the src
 	ast, err := Parse(src)
+	if ast == nil {
+		return
+	}
 	if err != nil {
 		errRes(err.Error(), w)
 		return
@@ -48,6 +52,8 @@ func (d *Driver) Operate(src string, w io.Writer) {
 			res(d.set(stmt.SetStatement), w)
 		case GetType:
 			res(d.get(stmt.GetStatement), w)
+		case AuthType:
+			res(d.auth(stmt.AuthStatement), w)
 		}
 	}
 }
@@ -79,6 +85,14 @@ func (d *Driver) get(stmt *GetStatement) string {
 	}
 
 	return stringify(res)
+}
+
+func (d *Driver) auth(stmt *AuthStatement) string {
+	if d.db.Authenticate(stmt.username, stmt.password) {
+		return "Successfully authenticated"
+	}
+
+	return "Invalid Credentials"
 }
 
 // errRes function is supposed to write error messages to the
