@@ -16,6 +16,22 @@ func TestParse(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			"AUTH STATEMENT",
+			args{`AUTH user pass;`},
+			&Ast{
+				Statements: []*Statement{
+					{
+						AuthStatement: &AuthStatement{
+							username: "user",
+							password: "pass",
+						},
+						Typ: AuthType,
+					},
+				},
+			},
+			false,
+		},
+		{
 			"SET STATEMENT",
 			args{`SET data "Hello World";`},
 			&Ast{
