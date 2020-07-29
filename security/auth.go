@@ -30,7 +30,7 @@ func (auth *Auth) Authenticate(username string, password string) bool {
 // authentication. For authentication Authenticate method should be used
 func (auth Auth) Authorize(reqAccess Access) bool {
 	for _, access := range auth.Access {
-		if access == reqAccess {
+		if access >= reqAccess {
 			return true
 		}
 	}

@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-// DB interface defines the set of functions that RQL
+// SecureDB interface defines the set of functions that RQL
 // driver expects.
-type DB interface {
+type SecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration)
 	Get(key string) (interface{}, bool)
 }
@@ -19,13 +19,12 @@ type DB interface {
 // Driver takes in a database which conforms to the RQL DB interaface.
 // This ensures that the RQL driver isn't tied to a single implementation
 // of the database. Any database API that conforms this interface will work
-//
 type Driver struct {
-	db DB
+	db SecureDB
 }
 
 // New function returns a pointer to an instance of RQL driver
-func New(db DB) *Driver {
+func New(db SecureDB) *Driver {
 	return &Driver{db}
 }
 
@@ -53,12 +52,20 @@ func (d *Driver) Operate(src string, w io.Writer) {
 	}
 }
 
+// set method calls the set method on the database by providing
+// appropriate parameters
 func (d *Driver) set(stmt *SetStatement) string {
 	d.db.Set(stmt.key, stmt.val, convertToDuration(stmt.exp))
 
 	return "Success"
 }
 
+// get method calls the get method on the database by providing
+// appropriate parameters
+// it ignores the "keys" which do not exists in the database and places
+// nil in the slice for them
+//
+// It returns the stringified slice
 func (d *Driver) get(stmt *GetStatement) string {
 	var res []interface{}
 
@@ -66,6 +73,8 @@ func (d *Driver) get(stmt *GetStatement) string {
 		val, ok := d.db.Get(key)
 		if ok {
 			res = append(res, val)
+		} else {
+			res = append(res, nil)
 		}
 	}
 

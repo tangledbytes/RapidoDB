@@ -8,16 +8,23 @@ import (
 	"strings"
 )
 
+// TranslationDriver interface demands an object which
+// has an Operate method, it takes in string as input
+// and returns nothing
+type TranslationDriver interface {
+	Operate(cmd string, w io.Writer)
+}
+
 // Client represents an active TCP client communicating
 // with the server
 type Client struct {
 	conn   net.Conn
 	log    *log.Logger
-	driver Driver
+	driver TranslationDriver
 }
 
-// NewClient returns a new client instance
-func NewClient(conn net.Conn, l *log.Logger, d Driver) *Client {
+// New returns a new client instance
+func New(conn net.Conn, l *log.Logger, d TranslationDriver) *Client {
 	c := &Client{conn, l, d}
 
 	// Send the message to the client
