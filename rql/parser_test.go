@@ -25,7 +25,7 @@ func TestParse(t *testing.T) {
 							key: "data",
 							val: "Hello World",
 						},
-						typ: SetType,
+						Typ: SetType,
 					},
 				},
 			},
@@ -42,7 +42,7 @@ func TestParse(t *testing.T) {
 							val: "Hello World",
 							exp: 234,
 						},
-						typ: SetType,
+						Typ: SetType,
 					},
 				},
 			},
@@ -59,7 +59,7 @@ func TestParse(t *testing.T) {
 							val: "Hello World",
 							exp: 234,
 						},
-						typ: SetType,
+						Typ: SetType,
 					},
 					{
 						SetStatement: &SetStatement{
@@ -67,7 +67,7 @@ func TestParse(t *testing.T) {
 							val: "3454",
 							exp: 565,
 						},
-						typ: SetType,
+						Typ: SetType,
 					},
 				},
 			},
@@ -82,7 +82,7 @@ func TestParse(t *testing.T) {
 						GetStatement: &GetStatement{
 							keys: []string{"data", "data1", "data2", "data3"},
 						},
-						typ: GetType,
+						Typ: GetType,
 					},
 				},
 			},
@@ -97,7 +97,7 @@ func TestParse(t *testing.T) {
 						DeleteStatement: &DeleteStatement{
 							keys: []string{"data", "data1", "data2", "data3"},
 						},
-						typ: DeleteType,
+						Typ: DeleteType,
 					},
 				},
 			},
@@ -113,31 +113,31 @@ func TestParse(t *testing.T) {
 							key: "data",
 							val: "Hello World",
 						},
-						typ: SetType,
+						Typ: SetType,
 					},
 					{
 						GetStatement: &GetStatement{
 							keys: []string{"data", "data1", "data2", "data3"},
 						},
-						typ: GetType,
+						Typ: GetType,
 					},
 					{
 						DeleteStatement: &DeleteStatement{
 							keys: []string{"data", "data1", "data2", "data3"},
 						},
-						typ: DeleteType,
+						Typ: DeleteType,
 					},
 					{
 						GetStatement: &GetStatement{
 							keys: []string{"data"},
 						},
-						typ: GetType,
+						Typ: GetType,
 					},
 					{
 						DeleteStatement: &DeleteStatement{
 							keys: []string{"data"},
 						},
-						typ: DeleteType,
+						Typ: DeleteType,
 					},
 				},
 			},
