@@ -18,6 +18,7 @@ type Driver struct {
 	*Auth
 }
 
+// New returns a new instance of the security driver
 func New(db UnsecureDB) *Driver {
 	return &Driver{
 		db:   db,

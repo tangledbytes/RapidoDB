@@ -8,7 +8,7 @@ import (
 const (
 	// NeverExpire constant denotes the symbolic representation
 	// for not removing an item from the database
-	NeverExpire = -1
+	NeverExpire = 0
 )
 
 // Store struct encapsulates the store used by the database
