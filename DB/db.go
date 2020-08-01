@@ -20,6 +20,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"net"
 
@@ -28,6 +29,17 @@ import (
 	"github.com/utkarsh-pro/RapidoDB/store"
 	"github.com/utkarsh-pro/RapidoDB/transport"
 )
+
+const msg = `
+************************************************
+____             _     _       ____  ____  
+|  _ \ __ _ _ __ (_) __| | ___ |  _ \| __ ) 
+| |_) / _  |  _ \| |/ _  |/ _ \| | | |  _ \ 
+|  _ < (_| | |_) | | (_| | (_) | |_| | |_) |
+|_| \_\__,_| .__/|_|\__,_|\___/|____/|____/ 
+	   |_|                              
+************************************************
+`
 
 // RapidoDB struct represents the server
 type RapidoDB struct {
@@ -39,14 +51,24 @@ type RapidoDB struct {
 
 	// Store that the RapidoDB will be using internally
 	store *store.Store
+
+	// Store that RapidoDB uses to store the DB users info
+	usersStore *store.Store
 }
 
 // New returns an instance of the Server object
-func New(log *log.Logger, PORT string) *RapidoDB {
+func New(log *log.Logger, PORT, username, password string) *RapidoDB {
 	// Create a new store for the database
 	storage := store.New(store.NeverExpire)
 
-	return &RapidoDB{log, PORT, storage}
+	// Create a new store for the users
+	usersDB := store.New(store.NeverExpire)
+
+	usersDB.Set(username,
+		security.Register(username, password, []security.Access{security.ADMIN_ACCESS}), usersDB.DefaultExpiry,
+	)
+
+	return &RapidoDB{log, PORT, storage, usersDB}
 }
 
 // Run method starts the TCP server and sets up the TCP client handlers
@@ -64,7 +86,9 @@ func (s *RapidoDB) setupTCPServer() net.Listener {
 		s.log.Fatalf("Listen setup failed: %s", err)
 	}
 
+	fmt.Println(msg)
 	s.log.Println("Started server on PORT", s.PORT)
+	s.log.Println("Accepting Connections")
 
 	return listener
 }
@@ -91,7 +115,7 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	s.log.Println("Connected: ", c.RemoteAddr().String())
 
 	// Create a translation driver for the client
-	transDriver := createTransDriver(s.store)
+	transDriver := createTransDriver(s.store, s.usersStore)
 
 	// Create a client
 	cl := transport.New(c, s.log, transDriver)
@@ -100,13 +124,13 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	cl.InitRead()
 }
 
-func createTransDriver(store security.UnsecureDB) *rql.Driver {
+func createTransDriver(store, udb security.UnsecureDB) *rql.Driver {
 	// Add the secure layer on the store
 	// This layer is not added by default as
 	// this layer has client specific authentication
 	// credentials which may or may not be common for
 	// all of the associated clients
-	sdb := security.New(store)
+	sdb := security.New(store, udb)
 
 	// Pass the secure store to the driver
 	return rql.New(sdb)
