@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// UnsecureDB is composed of the IRapidoDB interface
-// and hence supports all the methods supported by it
+// UnsecureDB is the interface of the underlying store and supports
+// every read, write operation other than authentication and authorization
 type UnsecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration)
 	Get(key string) (interface{}, bool)
@@ -14,16 +14,16 @@ type UnsecureDB interface {
 	Wipe()
 }
 
-// Driver represents the object which deals with the security aspects
+// SecureDB represents the object which deals with the security aspects
 // of the database. It binds the lower and uppper layers of the database.
-type Driver struct {
+type SecureDB struct {
 	db UnsecureDB
 	*Auth
 }
 
 // New returns a new instance of the security driver
-func New(db UnsecureDB) *Driver {
-	return &Driver{
+func New(db UnsecureDB) *SecureDB {
+	return &SecureDB{
 		db:   db,
 		Auth: &Auth{"admin", "pass", []Access{ADMIN_ACCESS}, false},
 	}
@@ -31,7 +31,7 @@ func New(db UnsecureDB) *Driver {
 
 // Set method performs set operation on the database after checking
 // the user permissions
-func (d *Driver) Set(key string, data interface{}, expireIn time.Duration) error {
+func (d *SecureDB) Set(key string, data interface{}, expireIn time.Duration) error {
 	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
 		d.db.Set(key, data, expireIn)
 		return nil
@@ -42,7 +42,7 @@ func (d *Driver) Set(key string, data interface{}, expireIn time.Duration) error
 
 // Get method performs get operation on the database after checking
 // the user permissions
-func (d *Driver) Get(key string) (interface{}, bool, error) {
+func (d *SecureDB) Get(key string) (interface{}, bool, error) {
 	if d.IsAuthenticated && d.Authorize(READ_ACCESS) {
 		i, b := d.db.Get(key)
 		return i, b, nil
@@ -53,7 +53,7 @@ func (d *Driver) Get(key string) (interface{}, bool, error) {
 
 // Delete method performs delete operation on the database after
 // checking the permissions
-func (d *Driver) Delete(key string) (interface{}, bool, error) {
+func (d *SecureDB) Delete(key string) (interface{}, bool, error) {
 	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
 		i, b := d.db.Delete(key)
 		return i, b, nil
@@ -64,7 +64,7 @@ func (d *Driver) Delete(key string) (interface{}, bool, error) {
 
 // Wipe method performs wipe operation on the database after
 // checking the permissions
-func (d *Driver) Wipe() error {
+func (d *SecureDB) Wipe() error {
 	if d.IsAuthenticated && d.Authorize(WIPE_ACCESS) {
 		d.db.Wipe()
 		return nil

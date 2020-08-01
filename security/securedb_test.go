@@ -42,7 +42,7 @@ func (db *MockDB) Wipe() {
 	db.db = make(map[string]interface{})
 }
 
-func TestDriver_Set(t *testing.T) {
+func TestSecureDB_Set(t *testing.T) {
 	type fields struct {
 		db   UnsecureDB
 		Auth *Auth
@@ -97,7 +97,7 @@ func TestDriver_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := &Driver{
+			d := &SecureDB{
 				db:   tt.fields.db,
 				Auth: tt.fields.Auth,
 			}
@@ -108,7 +108,7 @@ func TestDriver_Set(t *testing.T) {
 	}
 }
 
-func TestDriver_Get(t *testing.T) {
+func TestSecureDB_Get(t *testing.T) {
 	type fields struct {
 		db   UnsecureDB
 		Auth *Auth
@@ -179,7 +179,7 @@ func TestDriver_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := &Driver{
+			d := &SecureDB{
 				db:   tt.fields.db,
 				Auth: tt.fields.Auth,
 			}
@@ -198,7 +198,7 @@ func TestDriver_Get(t *testing.T) {
 	}
 }
 
-func TestDriver_Delete(t *testing.T) {
+func TestSecureDB_Delete(t *testing.T) {
 	type fields struct {
 		db   UnsecureDB
 		Auth *Auth
@@ -272,7 +272,7 @@ func TestDriver_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := &Driver{
+			d := &SecureDB{
 				db:   tt.fields.db,
 				Auth: tt.fields.Auth,
 			}
@@ -291,7 +291,7 @@ func TestDriver_Delete(t *testing.T) {
 	}
 }
 
-func TestDriver_Wipe(t *testing.T) {
+func TestSecureDB_Wipe(t *testing.T) {
 	type fields struct {
 		db   UnsecureDB
 		Auth *Auth
@@ -320,7 +320,7 @@ func TestDriver_Wipe(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := &Driver{
+			d := &SecureDB{
 				db:   tt.fields.db,
 				Auth: tt.fields.Auth,
 			}
