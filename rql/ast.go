@@ -12,12 +12,13 @@ type Ast struct {
 
 // Statement represents the statement structure inside the AST
 type Statement struct {
-	SetStatement    *SetStatement
-	GetStatement    *GetStatement
-	DeleteStatement *DeleteStatement
-	AuthStatement   *AuthStatement
-	WipeStatement   *WipeStatement
-	Typ             AstType
+	SetStatement     *SetStatement
+	GetStatement     *GetStatement
+	DeleteStatement  *DeleteStatement
+	AuthStatement    *AuthStatement
+	WipeStatement    *WipeStatement
+	RegUserStatement *RegUserStatement
+	Typ              AstType
 }
 
 // SetStatement contains the structure for a "SET" command
@@ -45,6 +46,13 @@ type AuthStatement struct {
 
 // WipeStatement contains the structure for a "WIPE" command
 type WipeStatement struct {
+}
+
+// RegUserStatement contains the structure for a "REGUSER" command
+type RegUserStatement struct {
+	username string
+	password string
+	access   uint
 }
 
 // AstType represents the type of abstract syntax tree
@@ -78,6 +86,7 @@ const (
 	DeleteType
 	AuthType
 	WipeType
+	RegUserType
 )
 
 // ===========================================================================

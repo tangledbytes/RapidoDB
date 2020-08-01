@@ -32,6 +32,23 @@ func TestParse(t *testing.T) {
 			false,
 		},
 		{
+			"REGUSER STATEMENT",
+			args{`REGUSER user pass 5;`},
+			&Ast{
+				Statements: []*Statement{
+					{
+						RegUserStatement: &RegUserStatement{
+							username: "user",
+							password: "pass",
+							access:   5,
+						},
+						Typ: RegUserType,
+					},
+				},
+			},
+			false,
+		},
+		{
 			"SET STATEMENT",
 			args{`SET data "Hello World";`},
 			&Ast{

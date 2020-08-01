@@ -139,6 +139,15 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 			WipeStatement: wipe,
 		}, newCursor, true, err
 	}
+
+	// Look for a REGUSER statement
+	reguser, newCursor, ok, err := parseRegUserStatement(tokens, cursor, semicolonToken)
+	if ok || err != nil {
+		return &Statement{
+			Typ:              RegUserType,
+			RegUserStatement: reguser,
+		}, newCursor, true, err
+	}
 	return nil, initialCursor, false, nil
 }
 
@@ -278,6 +287,48 @@ func parseWipeStatement(tokens []*token, initialCursor uint, delimiter token) (*
 	cursor++
 
 	return &WipeStatement{}, cursor, true, nil
+}
+
+func parseRegUserStatement(tokens []*token, initialCursor uint, delimiter token) (*RegUserStatement, uint, bool, error) {
+	// REGUSER <username> <password> [access_level];
+	cursor := initialCursor
+
+	// Look for the REGUSER keyword
+	if !expectToken(tokens, cursor, tokenFromKeyword(reguserKeyword)) {
+		return nil, initialCursor, false, nil
+	}
+	cursor++
+
+	// Look for the username
+	username, newCursor, ok := parseToken(tokens, cursor, identifierType)
+	if !ok {
+		return nil, initialCursor, false, errors.New(helpMessage(tokens, cursor, "Expected a username"))
+	}
+	cursor = newCursor
+
+	// Look for the username
+	password, newCursor, ok := parseToken(tokens, cursor, identifierType)
+	if !ok {
+		return nil, initialCursor, false, errors.New(helpMessage(tokens, cursor, "Expected a password"))
+	}
+	cursor = newCursor
+
+	// Search for optional accesslevel
+	exp, newCursor, ok := parseToken(tokens, cursor, numericType)
+	if !ok {
+		return &RegUserStatement{
+			username: username.val,
+			password: password.val,
+		}, cursor, true, nil
+	}
+
+	accesslevel, err := strconv.ParseUint(exp.val, 10, 16)
+	if err != nil {
+		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "Invalid access level provided"))
+	}
+	cursor = newCursor
+
+	return &RegUserStatement{username.val, password.val, uint(accesslevel)}, cursor, true, nil
 }
 
 func parseExpression(tokens []*token, initialCursor uint) (*token, uint, bool) {
