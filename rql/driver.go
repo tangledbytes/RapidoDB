@@ -11,6 +11,7 @@ import (
 type SecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration)
 	Get(key string) (interface{}, bool)
+	Delete(key string) (interface{}, bool)
 	Authenticate(username string, password string) bool
 }
 
@@ -52,6 +53,8 @@ func (d *Driver) Operate(src string, w io.Writer) {
 			res(d.set(stmt.SetStatement), w)
 		case GetType:
 			res(d.get(stmt.GetStatement), w)
+		case DeleteType:
+			res(d.delete(stmt.DeleteStatement), w)
 		case AuthType:
 			res(d.auth(stmt.AuthStatement), w)
 		}
@@ -77,6 +80,27 @@ func (d *Driver) get(stmt *GetStatement) string {
 
 	for _, key := range stmt.keys {
 		val, ok := d.db.Get(key)
+		if ok {
+			res = append(res, val)
+		} else {
+			res = append(res, nil)
+		}
+	}
+
+	return stringify(res)
+}
+
+// delete method calls the delete method on the database by providing
+// appropriate parameters
+// it ignores the "keys" which do not exists in the database and places
+// nil in the slice for them
+//
+// It returns the stringified slice
+func (d *Driver) delete(stmt *DeleteStatement) string {
+	var res []interface{}
+
+	for _, key := range stmt.keys {
+		val, ok := d.db.Delete(key)
 		if ok {
 			res = append(res, val)
 		} else {
