@@ -1,6 +1,7 @@
 package security
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type UnsecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration)
 	Get(key string) (interface{}, bool)
 	Delete(key string) (interface{}, bool)
+	Wipe()
 }
 
 // Driver represents the object which deals with the security aspects
@@ -29,28 +31,48 @@ func New(db UnsecureDB) *Driver {
 
 // Set method performs set operation on the database after checking
 // the user permissions
-func (d *Driver) Set(key string, data interface{}, expireIn time.Duration) {
+func (d *Driver) Set(key string, data interface{}, expireIn time.Duration) error {
 	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
 		d.db.Set(key, data, expireIn)
+		return nil
 	}
+
+	return deniedErr()
 }
 
 // Get method performs get operation on the database after checking
 // the user permissions
-func (d *Driver) Get(key string) (interface{}, bool) {
+func (d *Driver) Get(key string) (interface{}, bool, error) {
 	if d.IsAuthenticated && d.Authorize(READ_ACCESS) {
-		return d.db.Get(key)
+		i, b := d.db.Get(key)
+		return i, b, nil
 	}
 
-	return nil, false
+	return nil, false, deniedErr()
 }
 
 // Delete method performs delete operation on the database after
 // checking the permissions
-func (d *Driver) Delete(key string) (interface{}, bool) {
+func (d *Driver) Delete(key string) (interface{}, bool, error) {
 	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
-		return d.db.Delete(key)
+		i, b := d.db.Delete(key)
+		return i, b, nil
 	}
 
-	return nil, false
+	return nil, false, deniedErr()
+}
+
+// Wipe method performs wipe operation on the database after
+// checking the permissions
+func (d *Driver) Wipe() error {
+	if d.IsAuthenticated && d.Authorize(WIPE_ACCESS) {
+		d.db.Wipe()
+		return nil
+	}
+
+	return deniedErr()
+}
+
+func deniedErr() error {
+	return fmt.Errorf("Access denied")
 }
