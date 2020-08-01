@@ -2,27 +2,43 @@ package security
 
 import "fmt"
 
-// Auth holds the data of a client that is
+// Auth holds the users' database and the access
+// granted to the current user. By default it
+// should be "NONE". Although it can be changed to
+// anything in case of testing
+type Auth struct {
+	usersDB UnsecureDB
+	Access  []Access
+}
+
+// RegisteredUser holds the data of a client that is
 // using the database. It holds information like
 // username, password and permitted access types
-type Auth struct {
-	Username        string
-	Password        string
-	Access          []Access
-	IsAuthenticated bool
+type RegisteredUser struct {
+	Username string
+	Password string
+	Access   []Access
 }
 
 // Register function registers a new authentication detail and returns the auth object
-func Register(username string, password string, access []Access) *Auth {
-	return &Auth{username, password, access, false}
+func Register(username string, password string, access []Access) RegisteredUser {
+	return RegisteredUser{username, password, access}
 }
 
 // Authenticate authenticates a user but does not handles authorization
 // over the database resources!
 func (auth *Auth) Authenticate(username string, password string) error {
-	if username == auth.Username && password == auth.Password {
-		auth.IsAuthenticated = true
-		return nil
+	user, ok := auth.usersDB.Get(username)
+	if ok {
+		v, valid := user.(RegisteredUser)
+		if !valid {
+			panic("Invalid user exists in the DBUser store")
+		}
+
+		if v.Password == password {
+			auth.Access = v.Access
+			return nil
+		}
 	}
 
 	return fmt.Errorf("Invalid credentials")
@@ -38,4 +54,15 @@ func (auth Auth) Authorize(reqAccess Access) bool {
 	}
 
 	return false
+}
+
+// RegisterUser creates a new user for the database
+func (auth *Auth) RegisterUser(username string, password string, access []Access) error {
+	if auth.Authorize(CREATE_USER_ACCESS) {
+		ru := Register(username, password, access)
+		auth.usersDB.Set(ru.Username, ru, 0)
+		return nil
+	}
+
+	return deniedErr()
 }

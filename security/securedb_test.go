@@ -53,10 +53,12 @@ func TestSecureDB_Set(t *testing.T) {
 		expireIn time.Duration
 	}
 
-	m := make(map[string]interface{})
-	db := &MockDB{m}
-	auth := &Auth{"admin", "pass", []Access{ADMIN_ACCESS}, true}
-	auth2 := &Auth{"admin", "pass", []Access{READ_ACCESS}, true}
+	m1 := make(map[string]interface{})
+	m2 := make(map[string]interface{})
+	db := &MockDB{m1}
+	udb := &MockDB{m2}
+	auth := &Auth{udb, []Access{ADMIN_ACCESS}}
+	auth2 := &Auth{udb, []Access{READ_ACCESS}}
 
 	tests := []struct {
 		name    string
@@ -117,10 +119,12 @@ func TestSecureDB_Get(t *testing.T) {
 		key string
 	}
 
-	m := make(map[string]interface{})
-	db := &MockDB{m}
-	auth := &Auth{"admin", "pass", []Access{ADMIN_ACCESS}, true}
-	auth2 := &Auth{"admin", "pass", []Access{NONE}, true}
+	m1 := make(map[string]interface{})
+	m2 := make(map[string]interface{})
+	db := &MockDB{m1}
+	udb := &MockDB{m2}
+	auth := &Auth{udb, []Access{ADMIN_ACCESS}}
+	auth2 := &Auth{udb, []Access{NONE}}
 
 	// Add a key to the map -> key = 'd1'
 	db.Set("d1", "Hello World", 0)
@@ -207,10 +211,12 @@ func TestSecureDB_Delete(t *testing.T) {
 		key string
 	}
 
-	m := make(map[string]interface{})
-	db := &MockDB{m}
-	auth := &Auth{"admin", "pass", []Access{ADMIN_ACCESS}, true}
-	auth2 := &Auth{"admin", "pass", []Access{READ_ACCESS}, true}
+	m1 := make(map[string]interface{})
+	m2 := make(map[string]interface{})
+	db := &MockDB{m1}
+	udb := &MockDB{m2}
+	auth := &Auth{udb, []Access{ADMIN_ACCESS}}
+	auth2 := &Auth{udb, []Access{READ_ACCESS}}
 
 	// Add a key to the map -> key = 'd1'
 	db.Set("d1", "Hello World", 0)
@@ -297,10 +303,12 @@ func TestSecureDB_Wipe(t *testing.T) {
 		Auth *Auth
 	}
 
-	m := make(map[string]interface{})
-	db := &MockDB{m}
-	auth := &Auth{"admin", "pass", []Access{ADMIN_ACCESS}, true}
-	auth2 := &Auth{"admin", "pass", []Access{NONE}, true}
+	m1 := make(map[string]interface{})
+	m2 := make(map[string]interface{})
+	db := &MockDB{m1}
+	udb := &MockDB{m2}
+	auth := &Auth{udb, []Access{ADMIN_ACCESS}}
+	auth2 := &Auth{udb, []Access{NONE}}
 
 	tests := []struct {
 		name    string

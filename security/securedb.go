@@ -22,17 +22,17 @@ type SecureDB struct {
 }
 
 // New returns a new instance of the security driver
-func New(db UnsecureDB) *SecureDB {
+func New(db UnsecureDB, userDB UnsecureDB) *SecureDB {
 	return &SecureDB{
 		db:   db,
-		Auth: &Auth{"admin", "pass", []Access{ADMIN_ACCESS}, false},
+		Auth: &Auth{userDB, []Access{NONE}},
 	}
 }
 
 // Set method performs set operation on the database after checking
 // the user permissions
 func (d *SecureDB) Set(key string, data interface{}, expireIn time.Duration) error {
-	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
+	if d.Authorize(WRITE_ACCESS) {
 		d.db.Set(key, data, expireIn)
 		return nil
 	}
@@ -43,7 +43,7 @@ func (d *SecureDB) Set(key string, data interface{}, expireIn time.Duration) err
 // Get method performs get operation on the database after checking
 // the user permissions
 func (d *SecureDB) Get(key string) (interface{}, bool, error) {
-	if d.IsAuthenticated && d.Authorize(READ_ACCESS) {
+	if d.Authorize(READ_ACCESS) {
 		i, b := d.db.Get(key)
 		return i, b, nil
 	}
@@ -54,7 +54,7 @@ func (d *SecureDB) Get(key string) (interface{}, bool, error) {
 // Delete method performs delete operation on the database after
 // checking the permissions
 func (d *SecureDB) Delete(key string) (interface{}, bool, error) {
-	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
+	if d.Authorize(WRITE_ACCESS) {
 		i, b := d.db.Delete(key)
 		return i, b, nil
 	}
@@ -65,7 +65,7 @@ func (d *SecureDB) Delete(key string) (interface{}, bool, error) {
 // Wipe method performs wipe operation on the database after
 // checking the permissions
 func (d *SecureDB) Wipe() error {
-	if d.IsAuthenticated && d.Authorize(WIPE_ACCESS) {
+	if d.Authorize(WIPE_ACCESS) {
 		d.db.Wipe()
 		return nil
 	}
