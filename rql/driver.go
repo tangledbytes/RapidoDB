@@ -9,10 +9,10 @@ import (
 // SecureDB interface defines the set of functions that RQL
 // driver expects.
 type SecureDB interface {
-	Set(key string, data interface{}, expireIn time.Duration)
-	Get(key string) (interface{}, bool)
-	Delete(key string) (interface{}, bool)
-	Authenticate(username string, password string) bool
+	Set(key string, data interface{}, expireIn time.Duration) error
+	Get(key string) (interface{}, bool, error)
+	Delete(key string) (interface{}, bool, error)
+	Authenticate(username string, password string) error
 }
 
 // Driver is the RQL driver which acts as an interface between a database client and
@@ -64,8 +64,11 @@ func (d *Driver) Operate(src string, w io.Writer) {
 // set method calls the set method on the database by providing
 // appropriate parameters
 func (d *Driver) set(stmt *SetStatement) string {
-	d.db.Set(stmt.key, stmt.val, convertToDuration(stmt.exp))
+	err := d.db.Set(stmt.key, stmt.val, convertToDuration(stmt.exp))
 
+	if err != nil {
+		return err.Error()
+	}
 	return "Success"
 }
 
@@ -79,12 +82,11 @@ func (d *Driver) get(stmt *GetStatement) string {
 	var res []interface{}
 
 	for _, key := range stmt.keys {
-		val, ok := d.db.Get(key)
-		if ok {
-			res = append(res, val)
-		} else {
-			res = append(res, nil)
+		val, _, err := d.db.Get(key)
+		if err != nil {
+			return err.Error()
 		}
+		res = append(res, val)
 	}
 
 	return stringify(res)
@@ -100,23 +102,23 @@ func (d *Driver) delete(stmt *DeleteStatement) string {
 	var res []interface{}
 
 	for _, key := range stmt.keys {
-		val, ok := d.db.Delete(key)
-		if ok {
-			res = append(res, val)
-		} else {
-			res = append(res, nil)
+		val, _, err := d.db.Delete(key)
+		if err != nil {
+			return err.Error()
 		}
+		res = append(res, val)
 	}
 
 	return stringify(res)
 }
 
+// auth takes in the authStatement and executes Authenticate method on the database
 func (d *Driver) auth(stmt *AuthStatement) string {
-	if d.db.Authenticate(stmt.username, stmt.password) {
-		return "Successfully authenticated"
+	if err := d.db.Authenticate(stmt.username, stmt.password); err != nil {
+		return err.Error()
 	}
 
-	return "Invalid Credentials"
+	return "Successfully Authenticated"
 }
 
 // errRes function is supposed to write error messages to the
