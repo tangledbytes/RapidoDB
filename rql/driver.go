@@ -117,7 +117,7 @@ func res(msg string, w io.Writer) {
 // It's internally converted into nanoseconds and is then casted into
 // time.Duration object
 func convertToDuration(t uint) time.Duration {
-	return time.Duration(t * 1000)
+	return time.Duration(t * 1000 * 1000)
 }
 
 // stringify function can be used to stringify any data type
