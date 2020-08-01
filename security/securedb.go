@@ -18,14 +18,14 @@ type UnsecureDB interface {
 // of the database. It binds the lower and uppper layers of the database.
 type SecureDB struct {
 	db UnsecureDB
-	*Auth
+	*ActiveUser
 }
 
 // New returns a new instance of the security driver
 func New(db UnsecureDB, userDB UnsecureDB) *SecureDB {
 	return &SecureDB{
-		db:   db,
-		Auth: &Auth{userDB, NONE},
+		db:         db,
+		ActiveUser: &ActiveUser{userDB, NONE},
 	}
 }
 

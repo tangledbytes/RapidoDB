@@ -44,8 +44,8 @@ func (db *MockDB) Wipe() {
 
 func TestSecureDB_Set(t *testing.T) {
 	type fields struct {
-		db   UnsecureDB
-		Auth *Auth
+		db         UnsecureDB
+		ActiveUser *ActiveUser
 	}
 	type args struct {
 		key      string
@@ -57,8 +57,8 @@ func TestSecureDB_Set(t *testing.T) {
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
 	udb := &MockDB{m2}
-	auth := &Auth{udb, ADMIN_ACCESS}
-	auth2 := &Auth{udb, READ_ACCESS}
+	auth := &ActiveUser{udb, ADMIN_ACCESS}
+	auth2 := &ActiveUser{udb, READ_ACCESS}
 
 	tests := []struct {
 		name    string
@@ -100,8 +100,8 @@ func TestSecureDB_Set(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
-				db:   tt.fields.db,
-				Auth: tt.fields.Auth,
+				db:         tt.fields.db,
+				ActiveUser: tt.fields.ActiveUser,
 			}
 			if err := d.Set(tt.args.key, tt.args.data, tt.args.expireIn); (err != nil) != tt.wantErr {
 				t.Errorf("Driver.Set() error = %v, wantErr %v", err, tt.wantErr)
@@ -112,8 +112,8 @@ func TestSecureDB_Set(t *testing.T) {
 
 func TestSecureDB_Get(t *testing.T) {
 	type fields struct {
-		db   UnsecureDB
-		Auth *Auth
+		db         UnsecureDB
+		ActiveUser *ActiveUser
 	}
 	type args struct {
 		key string
@@ -123,8 +123,8 @@ func TestSecureDB_Get(t *testing.T) {
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
 	udb := &MockDB{m2}
-	auth := &Auth{udb, ADMIN_ACCESS}
-	auth2 := &Auth{udb, NONE}
+	auth := &ActiveUser{udb, ADMIN_ACCESS}
+	auth2 := &ActiveUser{udb, NONE}
 
 	// Add a key to the map -> key = 'd1'
 	db.Set("d1", "Hello World", 0)
@@ -184,8 +184,8 @@ func TestSecureDB_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
-				db:   tt.fields.db,
-				Auth: tt.fields.Auth,
+				db:         tt.fields.db,
+				ActiveUser: tt.fields.ActiveUser,
 			}
 			got, got1, err := d.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {
@@ -204,8 +204,8 @@ func TestSecureDB_Get(t *testing.T) {
 
 func TestSecureDB_Delete(t *testing.T) {
 	type fields struct {
-		db   UnsecureDB
-		Auth *Auth
+		db         UnsecureDB
+		ActiveUser *ActiveUser
 	}
 	type args struct {
 		key string
@@ -215,8 +215,8 @@ func TestSecureDB_Delete(t *testing.T) {
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
 	udb := &MockDB{m2}
-	auth := &Auth{udb, ADMIN_ACCESS}
-	auth2 := &Auth{udb, READ_ACCESS}
+	auth := &ActiveUser{udb, ADMIN_ACCESS}
+	auth2 := &ActiveUser{udb, READ_ACCESS}
 
 	// Add a key to the map -> key = 'd1'
 	db.Set("d1", "Hello World", 0)
@@ -279,8 +279,8 @@ func TestSecureDB_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
-				db:   tt.fields.db,
-				Auth: tt.fields.Auth,
+				db:         tt.fields.db,
+				ActiveUser: tt.fields.ActiveUser,
 			}
 			got, got1, err := d.Delete(tt.args.key)
 			if (err != nil) != tt.wantErr {
@@ -299,16 +299,16 @@ func TestSecureDB_Delete(t *testing.T) {
 
 func TestSecureDB_Wipe(t *testing.T) {
 	type fields struct {
-		db   UnsecureDB
-		Auth *Auth
+		db         UnsecureDB
+		ActiveUser *ActiveUser
 	}
 
 	m1 := make(map[string]interface{})
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
 	udb := &MockDB{m2}
-	auth := &Auth{udb, ADMIN_ACCESS}
-	auth2 := &Auth{udb, NONE}
+	auth := &ActiveUser{udb, ADMIN_ACCESS}
+	auth2 := &ActiveUser{udb, NONE}
 
 	tests := []struct {
 		name    string
@@ -329,8 +329,8 @@ func TestSecureDB_Wipe(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
-				db:   tt.fields.db,
-				Auth: tt.fields.Auth,
+				db:         tt.fields.db,
+				ActiveUser: tt.fields.ActiveUser,
 			}
 			if err := d.Wipe(); (err != nil) != tt.wantErr {
 				t.Errorf("Driver.Wipe() error = %v, wantErr %v", err, tt.wantErr)

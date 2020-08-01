@@ -2,11 +2,11 @@ package security
 
 import "fmt"
 
-// Auth holds the users' database and the access
+// ActiveUser holds the users' database and the access
 // granted to the current user. By default it
 // should be "NONE". Although it can be changed to
 // anything in case of testing
-type Auth struct {
+type ActiveUser struct {
 	usersDB UnsecureDB
 	Access  Access
 }
@@ -27,7 +27,7 @@ func Register(username string, password string, access Access) RegisteredUser {
 
 // Authenticate authenticates a user but does not handles authorization
 // over the database resources!
-func (auth *Auth) Authenticate(username string, password string) error {
+func (auth *ActiveUser) Authenticate(username string, password string) error {
 	user, ok := auth.usersDB.Get(username)
 	if ok {
 		v, valid := user.(RegisteredUser)
@@ -46,12 +46,12 @@ func (auth *Auth) Authenticate(username string, password string) error {
 
 // Authorize method just authorizes a given action and doesn't handle
 // authentication. For authentication Authenticate method should be used
-func (auth Auth) Authorize(reqAccess Access) bool {
+func (auth ActiveUser) Authorize(reqAccess Access) bool {
 	return auth.Access >= reqAccess
 }
 
 // RegisterUser creates a new user for the database
-func (auth *Auth) RegisterUser(username string, password string, access uint) error {
+func (auth *ActiveUser) RegisterUser(username string, password string, access uint) error {
 	if auth.Authorize(CREATE_USER_ACCESS) {
 		// Convert uint to Access
 		if access > uint(ADMIN_ACCESS) {
