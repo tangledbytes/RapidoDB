@@ -131,6 +131,14 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 		}, newCursor, true, err
 	}
 
+	// Look for a WIPE statement
+	wipe, newCursor, ok, err := parseWipeStatement(tokens, cursor, semicolonToken)
+	if ok || err != nil {
+		return &Statement{
+			Typ:           WipeType,
+			WipeStatement: wipe,
+		}, newCursor, true, err
+	}
 	return nil, initialCursor, false, nil
 }
 
@@ -233,7 +241,7 @@ func parseDeleteStatement(tokens []*token, initialCursor uint, delimiter token) 
 }
 
 func parseAuthStatement(tokens []*token, initialCursor uint, delimiter token) (*AuthStatement, uint, bool, error) {
-	// AUTH <username> <password>
+	// AUTH <username> <password>;
 	cursor := initialCursor
 
 	// Look for the AUTH keyword
@@ -257,6 +265,19 @@ func parseAuthStatement(tokens []*token, initialCursor uint, delimiter token) (*
 	cursor = newCursor
 
 	return &AuthStatement{username.val, password.val}, cursor, true, nil
+}
+
+func parseWipeStatement(tokens []*token, initialCursor uint, delimiter token) (*WipeStatement, uint, bool, error) {
+	// WIPE;
+	cursor := initialCursor
+
+	// Loof for the WIPE keyword
+	if !expectToken(tokens, cursor, tokenFromKeyword(wipeKeyword)) {
+		return nil, initialCursor, false, nil
+	}
+	cursor++
+
+	return &WipeStatement{}, cursor, true, nil
 }
 
 func parseExpression(tokens []*token, initialCursor uint) (*token, uint, bool) {

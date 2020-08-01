@@ -12,6 +12,7 @@ type SecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration) error
 	Get(key string) (interface{}, bool, error)
 	Delete(key string) (interface{}, bool, error)
+	Wipe() error
 	Authenticate(username string, password string) error
 }
 
@@ -55,6 +56,8 @@ func (d *Driver) Operate(src string, w io.Writer) {
 			res(d.get(stmt.GetStatement), w)
 		case DeleteType:
 			res(d.delete(stmt.DeleteStatement), w)
+		case WipeType:
+			res(d.wipe(stmt.WipeStatement), w)
 		case AuthType:
 			res(d.auth(stmt.AuthStatement), w)
 		}
@@ -110,6 +113,17 @@ func (d *Driver) delete(stmt *DeleteStatement) string {
 	}
 
 	return stringify(res)
+}
+
+// wipe method call the wipe method on the secure database
+// if any error occurs in the process then that error is passed
+// on to the client
+func (d *Driver) wipe(stmt *WipeStatement) string {
+	if err := d.db.Wipe(); err != nil {
+		return err.Error()
+	}
+
+	return "Success"
 }
 
 // auth takes in the authStatement and executes Authenticate method on the database
