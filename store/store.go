@@ -113,10 +113,8 @@ func (store *Store) DeleteExpired() {
 // and assigning a pointer to that map to the "data" attribute
 // of the store. Clearing up of that memory is the responsibility
 // of the garbage collector
-func (store *Store) Wipe() bool {
+func (store *Store) Wipe() {
 	store.Lock()
 	store.data = make(map[string]Item)
 	store.Unlock()
-
-	return true
 }
