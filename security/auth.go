@@ -8,7 +8,7 @@ import "fmt"
 // anything in case of testing
 type Auth struct {
 	usersDB UnsecureDB
-	Access  []Access
+	Access  Access
 }
 
 // RegisteredUser holds the data of a client that is
@@ -17,11 +17,11 @@ type Auth struct {
 type RegisteredUser struct {
 	Username string
 	Password string
-	Access   []Access
+	Access   Access
 }
 
 // Register function registers a new authentication detail and returns the auth object
-func Register(username string, password string, access []Access) RegisteredUser {
+func Register(username string, password string, access Access) RegisteredUser {
 	return RegisteredUser{username, password, access}
 }
 
@@ -47,19 +47,19 @@ func (auth *Auth) Authenticate(username string, password string) error {
 // Authorize method just authorizes a given action and doesn't handle
 // authentication. For authentication Authenticate method should be used
 func (auth Auth) Authorize(reqAccess Access) bool {
-	for _, access := range auth.Access {
-		if access >= reqAccess {
-			return true
-		}
-	}
-
-	return false
+	return auth.Access >= reqAccess
 }
 
 // RegisterUser creates a new user for the database
-func (auth *Auth) RegisterUser(username string, password string, access []Access) error {
+func (auth *Auth) RegisterUser(username string, password string, access uint) error {
 	if auth.Authorize(CREATE_USER_ACCESS) {
-		ru := Register(username, password, access)
+		// Convert uint to Access
+		if access > uint(ADMIN_ACCESS) {
+			return fmt.Errorf("Invalid access level, max can be %d for admins", ADMIN_ACCESS)
+		}
+		a := Access(access)
+
+		ru := Register(username, password, a)
 		auth.usersDB.Set(ru.Username, ru, 0)
 		return nil
 	}

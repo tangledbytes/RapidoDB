@@ -25,7 +25,7 @@ type SecureDB struct {
 func New(db UnsecureDB, userDB UnsecureDB) *SecureDB {
 	return &SecureDB{
 		db:   db,
-		Auth: &Auth{userDB, []Access{NONE}},
+		Auth: &Auth{userDB, NONE},
 	}
 }
 
