@@ -9,6 +9,7 @@ import (
 type UnsecureDB interface {
 	Set(key string, data interface{}, expireIn time.Duration)
 	Get(key string) (interface{}, bool)
+	Delete(key string) (interface{}, bool)
 }
 
 // Driver represents the object which deals with the security aspects
@@ -39,6 +40,16 @@ func (d *Driver) Set(key string, data interface{}, expireIn time.Duration) {
 func (d *Driver) Get(key string) (interface{}, bool) {
 	if d.IsAuthenticated && d.Authorize(READ_ACCESS) {
 		return d.db.Get(key)
+	}
+
+	return nil, false
+}
+
+// Delete method performs delete operation on the database after
+// checking the permissions
+func (d *Driver) Delete(key string) (interface{}, bool) {
+	if d.IsAuthenticated && d.Authorize(WRITE_ACCESS) {
+		return d.db.Delete(key)
 	}
 
 	return nil, false
