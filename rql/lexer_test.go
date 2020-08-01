@@ -16,24 +16,22 @@ func Test_lex(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"SET ANY",
-			args{"SET data any 1"},
+			"SET NUMBER",
+			args{"SET data 1"},
 			[]*token{
 				{"set", keywordType, location{0, 0}},
 				{"data", identifierType, location{0, 4}},
-				{"any", keywordType, location{0, 9}},
-				{"1", numericType, location{0, 13}},
+				{"1", numericType, location{0, 9}},
 			},
 			false,
 		},
 		{
 			"SET STRING",
-			args{`SET data string "Hello World"`},
+			args{`SET data "Hello World"`},
 			[]*token{
 				{"set", keywordType, location{0, 0}},
 				{"data", identifierType, location{0, 4}},
-				{"string", keywordType, location{0, 9}},
-				{"Hello World", stringType, location{0, 16}},
+				{"Hello World", stringType, location{0, 9}},
 			},
 			false,
 		},
@@ -52,6 +50,35 @@ func Test_lex(t *testing.T) {
 			[]*token{
 				{"del", keywordType, location{0, 0}},
 				{"data", identifierType, location{0, 4}},
+			},
+			false,
+		},
+		{
+			"WIPE",
+			args{`WIPE`},
+			[]*token{
+				{"wipe", keywordType, location{0, 0}},
+			},
+			false,
+		},
+		{
+			"REGUSER",
+			args{`REGUSER utkarsh safepass 5`},
+			[]*token{
+				{"reguser", keywordType, location{0, 0}},
+				{"utkarsh", identifierType, location{0, 8}},
+				{"safepass", identifierType, location{0, 16}},
+				{"5", numericType, location{0, 25}},
+			},
+			false,
+		},
+		{
+			"AUTH",
+			args{`AUTH utkarsh safepass`},
+			[]*token{
+				{"auth", keywordType, location{0, 0}},
+				{"utkarsh", identifierType, location{0, 5}},
+				{"safepass", identifierType, location{0, 13}},
 			},
 			false,
 		},

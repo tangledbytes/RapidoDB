@@ -43,18 +43,19 @@ type cursor struct {
 // RQL Keyword
 const (
 	// Commands
-	authKeyword keyword = "auth"
-	getKeyword  keyword = "get"
-	setKeyword  keyword = "set"
-	delKeyword  keyword = "del"
-	wipeKeyword keyword = "wipe"
+	authKeyword    keyword = "auth"
+	getKeyword     keyword = "get"
+	setKeyword     keyword = "set"
+	delKeyword     keyword = "del"
+	wipeKeyword    keyword = "wipe"
+	reguserKeyword keyword = "reguser"
 
 	// Data types
-	numberKeyword keyword = "number"
-	stringKeyword keyword = "string"
-	boolKeyword   keyword = "bool"
-	jsonKeyword   keyword = "json"
-	anyKeyword    keyword = "any"
+	// numberKeyword keyword = "number"
+	// stringKeyword keyword = "string"
+	// boolKeyword   keyword = "bool"
+	// jsonKeyword   keyword = "json"
+	// anyKeyword    keyword = "any"
 
 	// Conditionals
 	ifKeyword  keyword = "if"
@@ -151,13 +152,14 @@ func lexKeyword(source string, ic cursor) (*token, cursor, bool) {
 		setKeyword,
 		delKeyword,
 		wipeKeyword,
+		reguserKeyword,
 
 		// Data types
-		numberKeyword,
-		stringKeyword,
-		boolKeyword,
-		jsonKeyword,
-		anyKeyword,
+		// numberKeyword,
+		// stringKeyword,
+		// boolKeyword,
+		// jsonKeyword,
+		// anyKeyword,
 
 		// Conditionals
 		ifKeyword,
