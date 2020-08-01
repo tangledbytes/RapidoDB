@@ -65,7 +65,7 @@ func New(log *log.Logger, PORT, username, password string) *RapidoDB {
 	usersDB := store.New(store.NeverExpire)
 
 	usersDB.Set(username,
-		security.Register(username, password, []security.Access{security.ADMIN_ACCESS}), usersDB.DefaultExpiry,
+		security.Register(username, password, security.ADMIN_ACCESS), usersDB.DefaultExpiry,
 	)
 
 	return &RapidoDB{log, PORT, storage, usersDB}
