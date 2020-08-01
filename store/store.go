@@ -78,3 +78,15 @@ func (store *Store) Delete(key string) (interface{}, bool) {
 
 	return item.data, ok
 }
+
+// Wipe method clears the entire map by creating a new map
+// and assigning a pointer to that map to the "data" attribute
+// of the store. Clearing up of that memory is the responsibility
+// of the garbage collector
+func (store *Store) Wipe() bool {
+	store.Lock()
+	store.data = make(map[string]Item)
+	store.Unlock()
+
+	return true
+}

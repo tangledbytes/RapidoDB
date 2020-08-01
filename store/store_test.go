@@ -1,6 +1,7 @@
 package store
 
 import (
+	"strconv"
 	"testing"
 )
 
@@ -8,7 +9,7 @@ func BenchmarkStore_Set(b *testing.B) {
 	// Create a store
 	var store = New(-1)
 	for i := 0; i < b.N; i++ {
-		store.Set("key"+string(i), i, NeverExpire)
+		store.Set("key"+strconv.Itoa(i), i, NeverExpire)
 	}
 }
 
@@ -16,7 +17,7 @@ func BenchmarkStore_Get(b *testing.B) {
 	// Create a store
 	var store = New(-1)
 	for i := 0; i < b.N; i++ {
-		store.Get("key" + string(i))
+		store.Get("key" + strconv.Itoa(i))
 	}
 }
 
@@ -57,5 +58,25 @@ func TestStore(t *testing.T) {
 
 	if ok || i5 != nil {
 		t.Error("k2 shouldn't exist in the store once the item is deleted", i5)
+	}
+
+	// Add multiple keys
+	ts.Set("k1", 123, ts.DefaultExpiry)
+	ts.Set("k2", 1234, ts.DefaultExpiry)
+	ts.Set("k3", "Hello World", ts.DefaultExpiry)
+	ts.Set("k4", 345.0983, ts.DefaultExpiry)
+
+	//  Wipe the entire store
+	ts.Wipe()
+
+	// Check if any of the above values exists
+	for i := 0; i < 5; i++ {
+		key := "k" + strconv.Itoa(i+1)
+
+		item, ok := ts.Get(key)
+
+		if ok || item != nil {
+			t.Error("Key shouldn't exist after wiping the store", key)
+		}
 	}
 }
