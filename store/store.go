@@ -49,3 +49,32 @@ func (store *Store) Get(key string) (interface{}, bool) {
 	store.RUnlock()
 	return item.data, true
 }
+
+// Delete method deletes a key from the store. If the key doesn't exists
+// then it's a no-op
+//
+// Method returns the deleted item after the delete operation
+// If nothing has been deleted then it returns nil and false
+func (store *Store) Delete(key string) (interface{}, bool) {
+	store.Lock()
+
+	// Get the item using the native method only
+	// Get method on the store was avoided to be used here
+	// to avoid creating and removing locks twice which would
+	// affect the performance of the store
+	item, ok := store.data[key]
+
+	if ok {
+		// Delete the key from the map
+		// With the current implementation of golang
+		// delete function, the runtime doesn't crashes even
+		// if the key doesn't exists in the map
+		delete(store.data, key)
+		store.Unlock()
+		return item.data, ok
+	}
+
+	store.Unlock()
+
+	return item.data, ok
+}
