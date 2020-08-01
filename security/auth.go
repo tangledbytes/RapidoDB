@@ -1,5 +1,7 @@
 package security
 
+import "fmt"
+
 // Auth holds the data of a client that is
 // using the database. It holds information like
 // username, password and permitted access types
@@ -17,13 +19,13 @@ func Register(username string, password string, access []Access) *Auth {
 
 // Authenticate authenticates a user but does not handles authorization
 // over the database resources!
-func (auth *Auth) Authenticate(username string, password string) bool {
+func (auth *Auth) Authenticate(username string, password string) error {
 	if username == auth.Username && password == auth.Password {
 		auth.IsAuthenticated = true
-		return true
+		return nil
 	}
 
-	return false
+	return fmt.Errorf("Invalid credentials")
 }
 
 // Authorize method just authorizes a given action and doesn't handle
