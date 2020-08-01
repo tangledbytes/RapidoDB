@@ -12,7 +12,7 @@ import (
 // has an Operate method, it takes in string as input
 // and returns nothing
 type TranslationDriver interface {
-	Operate(cmd string, w io.Writer)
+	Operate(cmd string) (string, error)
 }
 
 // Client represents an active TCP client communicating
@@ -59,7 +59,12 @@ func (c *Client) InitRead() {
 		cmd = strings.TrimSpace(cmd)
 
 		// Pass the command to the driver
-		c.driver.Operate(cmd, c.conn)
+		res, err := c.driver.Operate(cmd)
+		if err != nil {
+			c.Err(err)
+			continue
+		}
+		c.Msg(res)
 	}
 }
 
