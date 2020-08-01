@@ -9,6 +9,11 @@ const (
 	// NeverExpire constant denotes the symbolic representation
 	// for not removing an item from the database
 	NeverExpire = 0
+
+	// This is the interval at which the janitor would be triggered
+	// It is hardcoded at the moment but shall be made configurable
+	// in the future
+	janitorInterval = 10 * time.Second
 )
 
 // Store struct encapsulates the store used by the database
@@ -16,14 +21,21 @@ type Store struct {
 	sync.RWMutex
 	DefaultExpiry time.Duration
 	data          map[string]Item
+	janitor       *janitor
 }
 
 // New returns a new store
 func New(defaultExpiry time.Duration) *Store {
-	return &Store{
+	s := &Store{
 		DefaultExpiry: defaultExpiry,
 		data:          make(map[string]Item),
+		janitor:       newJanitor(janitorInterval),
 	}
+
+	// Setup janitor for this store
+	setupJanitor(s)
+
+	return s
 }
 
 // Set adds an entry to the map with the corresponding key and data
@@ -77,6 +89,24 @@ func (store *Store) Delete(key string) (interface{}, bool) {
 	store.Unlock()
 
 	return item.data, ok
+}
+
+// DeleteExpired loops through the store and deletes
+// all the expired items
+func (store *Store) DeleteExpired() {
+	store.Lock()
+
+	for k, v := range store.data {
+		if v.isExpired() {
+			// Delete the key from the map
+			// With the current implementation of golang
+			// delete function, the runtime doesn't crashes even
+			// if the key doesn't exists in the map
+			delete(store.data, k)
+		}
+	}
+
+	store.Unlock()
 }
 
 // Wipe method clears the entire map by creating a new map

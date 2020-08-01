@@ -3,6 +3,7 @@ package store
 import (
 	"strconv"
 	"testing"
+	"time"
 )
 
 func BenchmarkStore_Set(b *testing.B) {
@@ -78,5 +79,41 @@ func TestStore(t *testing.T) {
 		if ok || item != nil {
 			t.Error("Key shouldn't exist after wiping the store", key)
 		}
+	}
+}
+
+func TestStoreJanitor(t *testing.T) {
+	// Create a store without using the new method
+	// to pass in a custom janitor interval
+	store := &Store{
+		DefaultExpiry: NeverExpire,
+		data:          make(map[string]Item),
+		janitor:       newJanitor(1 * time.Millisecond),
+	}
+
+	// Setup the janitor
+	setupJanitor(store)
+
+	// Add items to the store
+	store.Set("k1", 123, 10*time.Millisecond)
+	store.Set("k2", "Hello World", 1*time.Millisecond)
+
+	// Check if the items exists in the store without
+	// using the Get method defined on the store as
+	// that method will never return an item that has expired
+	// even if that item exists in the store
+	v1, ok := store.data["k1"]
+
+	if !ok {
+		t.Error("Expected key to exist", v1)
+	}
+
+	// Sleep for 5 millisecond
+	time.Sleep(5 * time.Millisecond)
+
+	v2, ok := store.data["k2"]
+
+	if ok {
+		t.Error("Item exists in the store even after expiring", v2)
 	}
 }
