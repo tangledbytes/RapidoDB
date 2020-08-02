@@ -32,7 +32,7 @@ func TestStore(t *testing.T) {
 	}
 
 	// Add k2 to store now
-	ts.Set("k2", 12345, ts.DefaultExpiry)
+	ts.Set("k2", 12345, ts.DefaultExpiry())
 
 	i2, ok := ts.Get("k2")
 
@@ -62,10 +62,10 @@ func TestStore(t *testing.T) {
 	}
 
 	// Add multiple keys
-	ts.Set("k1", 123, ts.DefaultExpiry)
-	ts.Set("k2", 1234, ts.DefaultExpiry)
-	ts.Set("k3", "Hello World", ts.DefaultExpiry)
-	ts.Set("k4", 345.0983, ts.DefaultExpiry)
+	ts.Set("k1", 123, ts.DefaultExpiry())
+	ts.Set("k2", 1234, ts.DefaultExpiry())
+	ts.Set("k3", "Hello World", ts.DefaultExpiry())
+	ts.Set("k4", 345.0983, ts.DefaultExpiry())
 
 	//  Wipe the entire store
 	ts.Wipe()
@@ -86,7 +86,7 @@ func TestStoreJanitor(t *testing.T) {
 	// Create a store without using the new method
 	// to pass in a custom janitor interval
 	store := &Store{
-		DefaultExpiry: NeverExpire,
+		defaultExpiry: NeverExpire,
 		data:          make(map[string]Item),
 		janitor:       newJanitor(1 * time.Millisecond),
 	}

@@ -19,7 +19,7 @@ const (
 // Store struct encapsulates the store used by the database
 type Store struct {
 	sync.RWMutex
-	DefaultExpiry time.Duration
+	defaultExpiry time.Duration
 	data          map[string]Item
 	janitor       *janitor
 }
@@ -27,7 +27,7 @@ type Store struct {
 // New returns a new store
 func New(defaultExpiry time.Duration) *Store {
 	s := &Store{
-		DefaultExpiry: defaultExpiry,
+		defaultExpiry: defaultExpiry,
 		data:          make(map[string]Item),
 		janitor:       newJanitor(janitorInterval),
 	}
@@ -117,4 +117,9 @@ func (store *Store) Wipe() {
 	store.Lock()
 	store.data = make(map[string]Item)
 	store.Unlock()
+}
+
+// DefaultExpiry returns the default expiry of the store items
+func (store *Store) DefaultExpiry() time.Duration {
+	return store.defaultExpiry
 }
