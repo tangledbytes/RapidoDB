@@ -24,10 +24,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/utkarsh-pro/RapidoDB/rql"
-	"github.com/utkarsh-pro/RapidoDB/security"
+	"github.com/utkarsh-pro/RapidoDB/manage"
 	"github.com/utkarsh-pro/RapidoDB/store"
-	"github.com/utkarsh-pro/RapidoDB/transport"
 )
 
 const msg = `
@@ -60,13 +58,13 @@ type RapidoDB struct {
 // New returns an instance of the Server object
 func New(log *log.Logger, PORT, username, password string) *RapidoDB {
 	// Create a new store for the database
-	storage := store.New(store.NeverExpire)
+	storage := prepareStorageLayer()
 
 	// Create a new store for the users
 	usersDB := store.New(store.NeverExpire)
 
 	usersDB.Set(username,
-		security.NewRegisteredUser(username, password, security.AdminAccess), usersDB.DefaultExpiry,
+		manage.NewDBUser(username, password, manage.AdminAccess), usersDB.DefaultExpiry(),
 	)
 
 	return &RapidoDB{log, PORT, storage, usersDB}
@@ -115,24 +113,15 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	// Print the address of the client
 	s.log.Println("Connected: ", c.RemoteAddr().String())
 
-	// Create a translation driver for the client
-	transDriver := createTransDriver(s.store, s.usersStore)
+	// get the client manager layer
+	sl := prepareClientManagerLayer(s.store, s.usersStore)
 
-	// Create a client
-	cl := transport.New(c, s.log, transDriver)
+	// get the translation layer
+	tl := prepareTranslationLayer(sl)
+
+	// get the transporter
+	trl := prepareTransportLayer(c, s.log, tl)
 
 	// Initialise the reader for the client
-	cl.InitRead()
-}
-
-func createTransDriver(store, udb security.UnsecureDB) *rql.Driver {
-	// Add the secure layer on the store
-	// This layer is not added by default as
-	// this layer has client specific authentication
-	// credentials which may or may not be common for
-	// all of the associated clients
-	sdb := security.New(store, udb)
-
-	// Pass the secure store to the driver
-	return rql.New(sdb)
+	trl.InitRead()
 }
