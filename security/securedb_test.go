@@ -45,7 +45,8 @@ func (db *MockDB) Wipe() {
 func TestSecureDB_Set(t *testing.T) {
 	type fields struct {
 		db         UnsecureDB
-		ActiveUser *ActiveUser
+		userdb     *UserDB
+		activeUser *ActiveUser
 	}
 	type args struct {
 		key      string
@@ -56,9 +57,10 @@ func TestSecureDB_Set(t *testing.T) {
 	m1 := make(map[string]interface{})
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
-	udb := &MockDB{m2}
-	auth := &ActiveUser{udb, ADMIN_ACCESS}
-	auth2 := &ActiveUser{udb, READ_ACCESS}
+	udb := &UserDB{&MockDB{m2}}
+
+	auth1 := newActiveUser("", "", AdminAccess)
+	auth2 := newActiveUser("", "", ReadAccess)
 
 	tests := []struct {
 		name    string
@@ -68,7 +70,7 @@ func TestSecureDB_Set(t *testing.T) {
 	}{
 		{
 			"SET STRING",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d1",
 				"Hello World",
@@ -78,7 +80,7 @@ func TestSecureDB_Set(t *testing.T) {
 		},
 		{
 			"SET NUMBERS",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d1",
 				100,
@@ -88,7 +90,7 @@ func TestSecureDB_Set(t *testing.T) {
 		},
 		{
 			"UNAUTHORIZED SET OPERATION",
-			fields{db, auth2},
+			fields{db, udb, auth2},
 			args{
 				"d3",
 				100,
@@ -101,7 +103,8 @@ func TestSecureDB_Set(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
 				db:         tt.fields.db,
-				ActiveUser: tt.fields.ActiveUser,
+				userdb:     tt.fields.userdb,
+				activeUser: tt.fields.activeUser,
 			}
 			if err := d.Set(tt.args.key, tt.args.data, tt.args.expireIn); (err != nil) != tt.wantErr {
 				t.Errorf("Driver.Set() error = %v, wantErr %v", err, tt.wantErr)
@@ -113,7 +116,8 @@ func TestSecureDB_Set(t *testing.T) {
 func TestSecureDB_Get(t *testing.T) {
 	type fields struct {
 		db         UnsecureDB
-		ActiveUser *ActiveUser
+		userdb     *UserDB
+		activeUser *ActiveUser
 	}
 	type args struct {
 		key string
@@ -122,9 +126,10 @@ func TestSecureDB_Get(t *testing.T) {
 	m1 := make(map[string]interface{})
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
-	udb := &MockDB{m2}
-	auth := &ActiveUser{udb, ADMIN_ACCESS}
-	auth2 := &ActiveUser{udb, NONE}
+	udb := &UserDB{&MockDB{m2}}
+
+	auth1 := newActiveUser("", "", AdminAccess)
+	auth2 := newActiveUser("", "", NONE)
 
 	// Add a key to the map -> key = 'd1'
 	db.Set("d1", "Hello World", 0)
@@ -142,7 +147,7 @@ func TestSecureDB_Get(t *testing.T) {
 	}{
 		{
 			"GET STRING WHEN KEY IS PRESENT",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d1",
 			},
@@ -152,7 +157,7 @@ func TestSecureDB_Get(t *testing.T) {
 		},
 		{
 			"GET NIL WHEN KEY IS ABSENT",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d2",
 			},
@@ -162,7 +167,7 @@ func TestSecureDB_Get(t *testing.T) {
 		},
 		{
 			"GET NUMBER WHEN KEY IS PRESENT",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d3",
 			},
@@ -172,7 +177,7 @@ func TestSecureDB_Get(t *testing.T) {
 		},
 		{
 			"UNAUTHORIZED GET NUMBER WHEN KEY IS PRESENT",
-			fields{db, auth2},
+			fields{db, udb, auth2},
 			args{
 				"d3",
 			},
@@ -185,7 +190,8 @@ func TestSecureDB_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
 				db:         tt.fields.db,
-				ActiveUser: tt.fields.ActiveUser,
+				userdb:     tt.fields.userdb,
+				activeUser: tt.fields.activeUser,
 			}
 			got, got1, err := d.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {
@@ -205,7 +211,8 @@ func TestSecureDB_Get(t *testing.T) {
 func TestSecureDB_Delete(t *testing.T) {
 	type fields struct {
 		db         UnsecureDB
-		ActiveUser *ActiveUser
+		userdb     *UserDB
+		activeUser *ActiveUser
 	}
 	type args struct {
 		key string
@@ -214,9 +221,10 @@ func TestSecureDB_Delete(t *testing.T) {
 	m1 := make(map[string]interface{})
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
-	udb := &MockDB{m2}
-	auth := &ActiveUser{udb, ADMIN_ACCESS}
-	auth2 := &ActiveUser{udb, READ_ACCESS}
+	udb := &UserDB{&MockDB{m2}}
+
+	auth1 := newActiveUser("", "", AdminAccess)
+	auth2 := newActiveUser("", "", ReadAccess)
 
 	// Add a key to the map -> key = 'd1'
 	db.Set("d1", "Hello World", 0)
@@ -237,7 +245,7 @@ func TestSecureDB_Delete(t *testing.T) {
 	}{
 		{
 			"DELETE STRING WHEN KEY IS PRESENT",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d1",
 			},
@@ -247,7 +255,7 @@ func TestSecureDB_Delete(t *testing.T) {
 		},
 		{
 			"GET NIL WHEN KEY IS ABSENT",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d2",
 			},
@@ -257,7 +265,7 @@ func TestSecureDB_Delete(t *testing.T) {
 		},
 		{
 			"DELETE NUMBER WHEN KEY IS PRESENT",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			args{
 				"d3",
 			},
@@ -267,7 +275,7 @@ func TestSecureDB_Delete(t *testing.T) {
 		},
 		{
 			"UNAUTHORIZED DELETE STRING WHEN KEY IS PRESENT",
-			fields{db, auth2},
+			fields{db, udb, auth2},
 			args{
 				"d4",
 			},
@@ -280,7 +288,8 @@ func TestSecureDB_Delete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
 				db:         tt.fields.db,
-				ActiveUser: tt.fields.ActiveUser,
+				userdb:     tt.fields.userdb,
+				activeUser: tt.fields.activeUser,
 			}
 			got, got1, err := d.Delete(tt.args.key)
 			if (err != nil) != tt.wantErr {
@@ -300,15 +309,17 @@ func TestSecureDB_Delete(t *testing.T) {
 func TestSecureDB_Wipe(t *testing.T) {
 	type fields struct {
 		db         UnsecureDB
-		ActiveUser *ActiveUser
+		userdb     *UserDB
+		activeUser *ActiveUser
 	}
 
 	m1 := make(map[string]interface{})
 	m2 := make(map[string]interface{})
 	db := &MockDB{m1}
-	udb := &MockDB{m2}
-	auth := &ActiveUser{udb, ADMIN_ACCESS}
-	auth2 := &ActiveUser{udb, NONE}
+	udb := &UserDB{&MockDB{m2}}
+
+	auth1 := newActiveUser("", "", AdminAccess)
+	auth2 := newActiveUser("", "", NONE)
 
 	tests := []struct {
 		name    string
@@ -317,12 +328,12 @@ func TestSecureDB_Wipe(t *testing.T) {
 	}{
 		{
 			"WIPE DB",
-			fields{db, auth},
+			fields{db, udb, auth1},
 			false,
 		},
 		{
 			"WIPE DB UNAUTH",
-			fields{db, auth2},
+			fields{db, udb, auth2},
 			true,
 		},
 	}
@@ -330,7 +341,8 @@ func TestSecureDB_Wipe(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &SecureDB{
 				db:         tt.fields.db,
-				ActiveUser: tt.fields.ActiveUser,
+				userdb:     tt.fields.userdb,
+				activeUser: tt.fields.activeUser,
 			}
 			if err := d.Wipe(); (err != nil) != tt.wantErr {
 				t.Errorf("Driver.Wipe() error = %v, wantErr %v", err, tt.wantErr)
