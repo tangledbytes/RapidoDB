@@ -1,21 +1,21 @@
 /*
-	db package will glue all the different layers of the database by providing
-	necessary abstractions to each layer. The following is the architecture of RapidoDB
+   db package will glue all the different layers of the database by providing
+   necessary abstractions to each layer. The following is the architecture of RapidoDB
 
-                   TCP SERVER
-    ----------------------------------------
-    |              TCP CLIENT              |    <==== TRANSPORT LAYER
-    ----------------------------------------
-    | RQL LEXER | RQL PARSER | RQL DRIVER  |    <==== TRANSLATION LAYER
-	----------------------------------------
-    |               OBSERVER               |    <==== OBSERVER LAYER
-    ----------------------------------------
-    |        SECURITY  |  MANAGER          |    <==== CLIENT MANAGEMENT LAYER
-    ----------------------------------------
-    |        STORE API | RAW DATA          |    <==== STORAGE LAYER
-    ----------------------------------------
+                  TCP SERVER
+   ----------------------------------------
+   |              TCP CLIENT              |    <==== TRANSPORT LAYER
+   ----------------------------------------
+   | RQL LEXER | RQL PARSER | RQL DRIVER  |    <==== TRANSLATION LAYER
+   ----------------------------------------
+   |               OBSERVER               |    <==== OBSERVER LAYER
+   ----------------------------------------
+   |        SECURITY  |  MANAGER          |    <==== CLIENT MANAGEMENT LAYER
+   ----------------------------------------
+   |        STORE API | RAW DATA          |    <==== STORAGE LAYER
+   ----------------------------------------
 
-	Each layer here is completey independent of the implementation of another layer
+   Each layer here is completey independent of the implementation of another layer
 
 */
 
