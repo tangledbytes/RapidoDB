@@ -13,13 +13,13 @@ func TestEventBus(t *testing.T) {
 	// Publish events
 	go func() {
 		for i := 0; i < 5; i++ {
-			Instance.Publish("event1", 1)
+			Instance.Publish("event1", DataEvent{"k1", 1})
 			time.Sleep(5 * time.Millisecond)
 		}
 	}()
 	go func() {
 		for i := 0; i < 2; i++ {
-			Instance.Publish("event2", 10)
+			Instance.Publish("event2", DataEvent{"k2", 10})
 			time.Sleep(10 * time.Millisecond)
 		}
 	}()
@@ -29,12 +29,18 @@ func TestEventBus(t *testing.T) {
 	for i := 0; i < totalPublishes; i++ {
 		select {
 		case d := <-ch1:
-			if d != 1 {
-				t.Errorf("Expected value %s got value %s", "event1", d)
+			if d.key != "k1" {
+				t.Errorf("Expected key %s got key %s", "k1", d.key)
+			}
+			if d.value != 1 {
+				t.Errorf("Expected value %v got value %v", 1, d.value)
 			}
 		case d := <-ch2:
-			if d != 10 {
-				t.Errorf("Expected value %s got value %s", "event2", d)
+			if d.key != "k2" {
+				t.Errorf("Expected key %s got key %s", "k2", d.key)
+			}
+			if d.value != 10 {
+				t.Errorf("Expected value %v got value %v", 10, d.value)
 			}
 		}
 	}
