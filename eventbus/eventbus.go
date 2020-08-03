@@ -52,7 +52,7 @@ func (eb *EventBus) Publish(topic string, data DataEvent) {
 
 // New returns a new event bus
 //
-// Although it should be rarrely used as singleton
+// Although it should be rarely used as singleton
 // for EventBus is already being exported
 func New() *EventBus {
 	return &EventBus{
