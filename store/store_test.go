@@ -102,7 +102,9 @@ func TestStoreJanitor(t *testing.T) {
 	// using the Get method defined on the store as
 	// that method will never return an item that has expired
 	// even if that item exists in the store
+	store.RLock()
 	v1, ok := store.data["k1"]
+	store.RUnlock()
 
 	if !ok {
 		t.Error("Expected key to exist", v1)
@@ -111,7 +113,9 @@ func TestStoreJanitor(t *testing.T) {
 	// Sleep for 5 millisecond
 	time.Sleep(5 * time.Millisecond)
 
+	store.RLock()
 	v2, ok := store.data["k2"]
+	store.RUnlock()
 
 	if ok {
 		t.Error("Item exists in the store even after expiring", v2)
