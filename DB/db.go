@@ -8,7 +8,7 @@
     ----------------------------------------
     | RQL LEXER | RQL PARSER | RQL DRIVER  |    <==== TRANSLATION LAYER
 	----------------------------------------
-	|               OBSERVER               |    <==== OBSERVER LAYER
+    |               OBSERVER               |    <==== OBSERVER LAYER
     ----------------------------------------
     |        SECURITY  |  MANAGER          |    <==== CLIENT MANAGEMENT LAYER
     ----------------------------------------
