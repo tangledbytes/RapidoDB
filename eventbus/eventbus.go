@@ -26,6 +26,16 @@ func NewDataEvent(key string, value interface{}) DataEvent {
 	return DataEvent{key, value}
 }
 
+// New returns a new event bus
+//
+// Although it should be rarely used as singleton
+// for EventBus is already being exported
+func New() *EventBus {
+	return &EventBus{
+		subscribers: make(map[string]DataChannelSlice),
+	}
+}
+
 // Subscribe method can be used to subscribe particular topics
 func (eb *EventBus) Subscribe(topic string, buf uint) DataChannel {
 	eb.rm.Lock()
@@ -48,16 +58,6 @@ func (eb *EventBus) Publish(topic string, data DataEvent) {
 	}
 
 	eb.rm.RUnlock()
-}
-
-// New returns a new event bus
-//
-// Although it should be rarely used as singleton
-// for EventBus is already being exported
-func New() *EventBus {
-	return &EventBus{
-		subscribers: make(map[string]DataChannelSlice),
-	}
 }
 
 // Instance is an event bus singleton
