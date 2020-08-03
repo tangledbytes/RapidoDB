@@ -2,16 +2,17 @@
 	db package will glue all the different layers of the database by providing
 	necessary abstractions to each layer. The following is the architecture of RapidoDB
 
-            TCP SERVER
-	-----------------------------
-    |       TCP CLIENT          |    <==== TRANSPORT LAYER
-	-----------------------------
-    |  RQL DRIVER | RQL PARSER	|    <==== TRANSLATION LAYER
-	-----------------------------
-    |	  AUTHENTICATION		|    <==== SECURITY LAYER
-	-----------------------------
+             TCP SERVER
+    -----------------------------
+    |        TCP CLIENT         |    <==== TRANSPORT LAYER
+    -----------------------------
+	|            RQL            |
+	|  LEXER | PARSER | DRIVER  |    <==== TRANSLATION LAYER
+    -----------------------------
+    |   SECURITY  |  MANAGER    |    <==== CLIENT MANAGEMENT LAYER
+    -----------------------------
     |   STORE API | RAW DATA    |    <==== STORAGE LAYER
-	-----------------------------
+    -----------------------------
 
 	Each layer here is completey independent of the implementation of another layer
 
