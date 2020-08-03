@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/utkarsh-pro/RapidoDB/manage"
+	"github.com/utkarsh-pro/RapidoDB/observer"
 	"github.com/utkarsh-pro/RapidoDB/rql"
 	"github.com/utkarsh-pro/RapidoDB/store"
 	"github.com/utkarsh-pro/RapidoDB/transport"
@@ -21,9 +22,15 @@ func prepareClientManagerLayer(store *store.Store, userdb *store.Store) *manage.
 	return manage.New(store, userdb)
 }
 
+// prepareObserverLayer takes in a securedb and adds a thin layer of observer
+// on that database which can publish events to the event bus
+func prepareObserverLayer(sdb *manage.SecureDB) *observer.ObservedDB {
+	return observer.New(sdb)
+}
+
 // prepareTranslationLayer takes in a securedb and creates a translation
 // driver for the database which enables the database to understand RQL
-func prepareTranslationLayer(store *manage.SecureDB) *rql.Driver {
+func prepareTranslationLayer(store *observer.ObservedDB) *rql.Driver {
 	return rql.New(store)
 }
 

@@ -2,17 +2,18 @@
 	db package will glue all the different layers of the database by providing
 	necessary abstractions to each layer. The following is the architecture of RapidoDB
 
-             TCP SERVER
-    -----------------------------
-    |        TCP CLIENT         |    <==== TRANSPORT LAYER
-    -----------------------------
-	|            RQL            |
-	|  LEXER | PARSER | DRIVER  |    <==== TRANSLATION LAYER
-    -----------------------------
-    |   SECURITY  |  MANAGER    |    <==== CLIENT MANAGEMENT LAYER
-    -----------------------------
-    |   STORE API | RAW DATA    |    <==== STORAGE LAYER
-    -----------------------------
+                   TCP SERVER
+    ----------------------------------------
+    |              TCP CLIENT              |    <==== TRANSPORT LAYER
+    ----------------------------------------
+    | RQL LEXER | RQL PARSER | RQL DRIVER  |    <==== TRANSLATION LAYER
+	----------------------------------------
+	|               OBSERVER               |    <==== OBSERVER LAYER
+    ----------------------------------------
+    |        SECURITY  |  MANAGER          |    <==== CLIENT MANAGEMENT LAYER
+    ----------------------------------------
+    |        STORE API | RAW DATA          |    <==== STORAGE LAYER
+    ----------------------------------------
 
 	Each layer here is completey independent of the implementation of another layer
 
@@ -117,8 +118,11 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	// get the client manager layer
 	sl := prepareClientManagerLayer(s.store, s.usersStore)
 
+	// get the observer layer
+	ol := prepareObserverLayer(sl)
+
 	// get the translation layer
-	tl := prepareTranslationLayer(sl)
+	tl := prepareTranslationLayer(ol)
 
 	// get the transporter
 	trl := prepareTransportLayer(c, s.log, tl)
