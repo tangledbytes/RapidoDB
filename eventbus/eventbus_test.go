@@ -6,15 +6,9 @@ import (
 )
 
 func TestEventBus(t *testing.T) {
-	// Channel 1 for getting info about event 1
-	ch1 := make(chan DataEvent, 1)
-
-	// Channel 2 for getting info about event 2
-	ch2 := make(chan DataEvent, 1)
-
 	// Subscribe to the events
-	Instance.Subscribe("event1", ch1)
-	Instance.Subscribe("event2", ch2)
+	ch1 := Instance.Subscribe("event1", 1)
+	ch2 := Instance.Subscribe("event2", 1)
 
 	// Publish events
 	go func() {
@@ -25,7 +19,7 @@ func TestEventBus(t *testing.T) {
 	}()
 	go func() {
 		for i := 0; i < 2; i++ {
-			Instance.Publish("event2", 1)
+			Instance.Publish("event2", 10)
 			time.Sleep(10 * time.Millisecond)
 		}
 	}()
@@ -35,12 +29,12 @@ func TestEventBus(t *testing.T) {
 	for i := 0; i < totalPublishes; i++ {
 		select {
 		case d := <-ch1:
-			if d.Topic != "event1" {
-				t.Errorf("Expected event %s got event %s", "event1", d.Topic)
+			if d != 1 {
+				t.Errorf("Expected value %s got value %s", "event1", d)
 			}
 		case d := <-ch2:
-			if d.Topic != "event2" {
-				t.Errorf("Expected event %s got event %s", "event2", d.Topic)
+			if d != 10 {
+				t.Errorf("Expected value %s got value %s", "event2", d)
 			}
 		}
 	}

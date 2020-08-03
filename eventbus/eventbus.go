@@ -12,48 +12,41 @@ type EventBus struct {
 type DataChannelSlice []DataChannel
 
 // DataChannel is the go channel for transferring data
-type DataChannel chan DataEvent
-
-// DataEvent encapsualtes the event published by the publishers
-// throught the event bus
-//
-// The data is the payload and the Topic is the event name
-type DataEvent struct {
-	Data  interface{}
-	Topic string
-}
+type DataChannel chan interface{}
 
 // Subscribe method can be used to subscribe particular topics
-func (eb *EventBus) Subscribe(topic string, ch DataChannel) {
+func (eb *EventBus) Subscribe(topic string, buf uint) DataChannel {
 	eb.rm.Lock()
-	if prev, found := eb.subscribers[topic]; found {
-		eb.subscribers[topic] = append(prev, ch)
-	} else {
-		eb.subscribers[topic] = append(DataChannelSlice{}, ch)
-	}
+
+	ch := make(DataChannel, buf)
+	eb.subscribers[topic] = append(eb.subscribers[topic], ch)
+
 	eb.rm.Unlock()
+	return ch
 }
 
 // Publish method can be used to publish an event
 func (eb *EventBus) Publish(topic string, data interface{}) {
 	eb.rm.RLock()
-	if chans, found := eb.subscribers[topic]; found {
-		// A copy of the slice is created here because different slices
-		// can share same arrays even though they are passed value.
-		// This will ensure that a new slice is created with different
-		// base array and hence mutex locking will work properly
-		channels := append(DataChannelSlice{}, chans...)
 
-		go func(data DataEvent, dataChannelSlice DataChannelSlice) {
-			for _, ch := range dataChannelSlice {
-				ch <- data
-			}
-		}(DataEvent{Data: data, Topic: topic}, channels)
+	for _, ch := range eb.subscribers[topic] {
+		go func(ch DataChannel, data interface{}) {
+			ch <- data
+		}(ch, data)
 	}
+
 	eb.rm.RUnlock()
 }
 
-// Instance is an event bus singleton
-var Instance = &EventBus{
-	subscribers: make(map[string]DataChannelSlice),
+// New returns a new event bus
+//
+// Although it should be rarrely used as singleton
+// for EventBus is already being exported
+func New() *EventBus {
+	return &EventBus{
+		subscribers: make(map[string]DataChannelSlice),
+	}
 }
+
+// Instance is an event bus singleton
+var Instance = New()
