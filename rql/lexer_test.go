@@ -82,6 +82,16 @@ func Test_lex(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"PING ON",
+			args{`PING ON GET`},
+			[]*token{
+				{"ping", keywordType, location{0, 0}},
+				{"on", keywordType, location{0, 5}},
+				{"get", keywordType, location{0, 8}},
+			},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

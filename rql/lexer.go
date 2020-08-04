@@ -49,6 +49,8 @@ const (
 	delKeyword     keyword = "del"
 	wipeKeyword    keyword = "wipe"
 	reguserKeyword keyword = "reguser"
+	pingKeyword    keyword = "ping"
+	onKeyword      keyword = "on"
 
 	// Data types
 	// numberKeyword keyword = "number"
@@ -153,6 +155,8 @@ func lexKeyword(source string, ic cursor) (*token, cursor, bool) {
 		delKeyword,
 		wipeKeyword,
 		reguserKeyword,
+		pingKeyword,
+		onKeyword,
 
 		// Data types
 		// numberKeyword,
