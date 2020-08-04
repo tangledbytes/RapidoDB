@@ -19,8 +19,9 @@ func PingClient(c ClientConn, events ...string) {
 	// Process all the channels
 	for _, ch := range chs {
 		go func(ch eventbus.DataChannel) {
-			res := <-ch
-			c.Msg(res.String())
+			for msg := range ch {
+				c.Msg(msg.String())
+			}
 		}(ch)
 	}
 }
@@ -34,7 +35,7 @@ func PingClient(c ClientConn, events ...string) {
 func subscribeToEvents(events ...string) eventbus.DataChannelSlice {
 	var ch eventbus.DataChannelSlice
 	for _, e := range events {
-		ch = append(ch, eventbus.Instance.Subscribe(e, 1))
+		ch = append(ch, eventbus.Instance.Subscribe(e, 0))
 	}
 
 	return ch
