@@ -2,6 +2,7 @@ package manage
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -20,9 +21,9 @@ func TestSecureDB_Set(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("admin", "pass", AdminAccess)
-	ac2 := newDBClient("test", "test", WriteAccess)
-	ac3 := newDBClient("test2", "test", ReadAccess)
+	ac := newDBClient("admin", "pass", AdminAccess, Events{})
+	ac2 := newDBClient("test", "test", WriteAccess, Events{})
+	ac3 := newDBClient("test2", "test", ReadAccess, Events{})
 
 	tests := []struct {
 		name    string
@@ -75,9 +76,9 @@ func TestSecureDB_Get(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("admin", "pass", AdminAccess)
-	ac2 := newDBClient("test", "test", ReadAccess)
-	ac3 := newDBClient("test2", "test", NONE)
+	ac := newDBClient("admin", "pass", AdminAccess, Events{})
+	ac2 := newDBClient("test", "test", ReadAccess, Events{})
+	ac3 := newDBClient("test2", "test", NONE, Events{})
 
 	// Set data
 	db.Set("k1", 1234, db.DefaultExpiry())
@@ -175,9 +176,9 @@ func TestSecureDB_Delete(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("admin", "pass", AdminAccess)
-	ac2 := newDBClient("test", "test", WriteAccess)
-	ac3 := newDBClient("test2", "test", NONE)
+	ac := newDBClient("admin", "pass", AdminAccess, Events{})
+	ac2 := newDBClient("test", "test", WriteAccess, Events{})
+	ac3 := newDBClient("test2", "test", NONE, Events{})
 
 	// Set data
 	db.Set("k1", 1234, db.DefaultExpiry())
@@ -272,9 +273,9 @@ func TestSecureDB_Wipe(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("admin", "pass", AdminAccess)
-	ac2 := newDBClient("test", "test", WipeAccess)
-	ac3 := newDBClient("test2", "test", NONE)
+	ac := newDBClient("admin", "pass", AdminAccess, Events{})
+	ac2 := newDBClient("test", "test", WipeAccess, Events{})
+	ac3 := newDBClient("test2", "test", NONE, Events{})
 
 	// Set data
 	db.Set("k1", 1234, db.DefaultExpiry())
@@ -330,9 +331,9 @@ func TestSecureDB_RegisterUser(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("admin", "pass", AdminAccess)
-	ac2 := newDBClient("test", "test", ModifyUserAccess)
-	ac3 := newDBClient("test2", "test", NONE)
+	ac := newDBClient("admin", "pass", AdminAccess, Events{})
+	ac2 := newDBClient("test", "test", ModifyUserAccess, Events{})
+	ac3 := newDBClient("test2", "test", NONE, Events{})
 
 	tests := []struct {
 		name    string
@@ -398,10 +399,10 @@ func TestSecureDB_Authenticate(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("test", "test", NONE) // Simulate the behaviour of a normal client
+	ac := newDBClient("test", "test", NONE, Events{}) // Simulate the behaviour of a normal client
 
 	// Add new users to the database
-	udb.Set("test2", NewDBUser("test2", "test2", AdminAccess), udb.DefaultExpiry())
+	udb.Set("test2", NewDBUser("test2", "test2", AdminAccess, Events{}), udb.DefaultExpiry())
 
 	tests := []struct {
 		name    string
@@ -454,7 +455,7 @@ func TestSecureDB_Authorize(t *testing.T) {
 
 	db := &MockDB{make(map[string]interface{})}
 	udb := &MockDB{make(map[string]interface{})}
-	ac := newDBClient("test", "test", ModifyUserAccess)
+	ac := newDBClient("test", "test", ModifyUserAccess, Events{})
 
 	tests := []struct {
 		name   string
@@ -490,6 +491,171 @@ func TestSecureDB_Authorize(t *testing.T) {
 			}
 			if got := sdb.Authorize(tt.args.reqAccess); got != tt.want {
 				t.Errorf("SecureDB.Authorize() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSecureDB_IsSubscribed(t *testing.T) {
+	type fields struct {
+		ust          UnsecureStore
+		userdb       *UserDB
+		activeClient *DBClient
+	}
+	type args struct {
+		event Event
+	}
+
+	db := &MockDB{make(map[string]interface{})}
+	udb := &MockDB{make(map[string]interface{})}
+	ac := newDBClient("test", "test", ModifyUserAccess, Events{GET, SET})
+
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			"EVENT THAT EXISTS IN THE EVENTS",
+			fields{db, &UserDB{udb}, ac},
+			args{GET},
+			true,
+		},
+		{
+			"EVENT THAT DOES NOT EXIST IN THE EVENTS",
+			fields{db, &UserDB{udb}, ac},
+			args{WIPE},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sdb := &SecureDB{
+				ust:          tt.fields.ust,
+				userdb:       tt.fields.userdb,
+				activeClient: tt.fields.activeClient,
+			}
+			if got := sdb.IsSubscribed(tt.args.event); got != tt.want {
+				t.Errorf("SecureDB.IsSubscribed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSecureDB_Ping(t *testing.T) {
+	type fields struct {
+		ust          UnsecureStore
+		userdb       *UserDB
+		activeClient *DBClient
+	}
+	type args struct {
+		event string
+	}
+
+	db := &MockDB{make(map[string]interface{})}
+	udb := &UserDB{&MockDB{make(map[string]interface{})}}
+	ac := newDBClient("test", "test", ModifyUserAccess, Events{})
+	ac2 := newDBClient("test", "test", AdminAccess, Events{})
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			"PING EVENT WITH VALID EVENT AND ADMIN ACCESS",
+			fields{db, udb, ac2},
+			args{"get"},
+			false,
+		},
+		{
+			"PING EVENT WITH VALID EVENT MODIFY USER ACCESS (SHOULD FAIL)",
+			fields{db, udb, ac},
+			args{"get"},
+			true,
+		},
+		{
+			"PING EVENT WITH INVALID EVENT AND ADMIN ACCESS",
+			fields{db, udb, ac2},
+			args{"geti"},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sdb := &SecureDB{
+				ust:          tt.fields.ust,
+				userdb:       tt.fields.userdb,
+				activeClient: tt.fields.activeClient,
+			}
+
+			err := sdb.Ping(tt.args.event)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SecureDB.Ping() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			// If action succeeded
+			if err == nil {
+				// Check if event now exists for the user in the active client
+				exists := false
+				var ev Event
+
+				// Convert string event to valid event
+				switch strings.ToLower(tt.args.event) {
+				case "get":
+					ev = GET
+				case "set":
+					ev = SET
+				case "del":
+					ev = DEL
+				case "wipe":
+					ev = WIPE
+				}
+
+				for _, e := range sdb.activeClient.events {
+					if e == ev {
+						exists = true
+						break
+					}
+				}
+
+				if !exists {
+					t.Errorf("Event not added to the active users subscriptions, got = %v", sdb.activeClient.events)
+				}
+
+				// Check if event now exists for the user in the users db
+				exists = false
+				user, ok := udb.FindUserByUsername(sdb.activeClient.username)
+
+				if !ok {
+					t.Errorf("User was not created after subscribing to the event")
+				}
+
+				// Convert string event to valid event
+				switch strings.ToLower(tt.args.event) {
+				case "get":
+					ev = GET
+				case "set":
+					ev = SET
+				case "del":
+					ev = DEL
+				case "wipe":
+					ev = WIPE
+				}
+
+				for _, e := range user.events {
+					if e == ev {
+						exists = true
+						break
+					}
+				}
+
+				if !exists {
+					t.Errorf("Event not added to the active users subscriptions, got = %v", user.events)
+				}
 			}
 		})
 	}

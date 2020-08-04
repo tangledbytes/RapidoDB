@@ -9,8 +9,8 @@ type UserDB struct {
 }
 
 // New adds a new db user to the database
-func (udb *UserDB) New(username, password string, access Access) {
-	udb.Set(username, NewDBUser(username, password, access), udb.DefaultExpiry())
+func (udb *UserDB) New(username, password string, access Access, events Events) {
+	udb.Set(username, NewDBUser(username, password, access, events), udb.DefaultExpiry())
 }
 
 // FindUserByUsername finds a user by its username in the user database
@@ -19,7 +19,7 @@ func (udb *UserDB) New(username, password string, access Access) {
 func (udb *UserDB) FindUserByUsername(username string) (DBUser, bool) {
 	user, ok := udb.Get(username)
 	if !ok {
-		return DBUser{}, false
+		return NewDBUser("", "", NONE, Events{}), false
 	}
 
 	return ToDBUser(user), true

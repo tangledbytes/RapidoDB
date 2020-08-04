@@ -14,6 +14,6 @@ type DBClient struct {
 
 // newDBClient creates an instance of the DBClient and returns a pointer
 // to the instance
-func newDBClient(username, password string, access Access) *DBClient {
-	return &DBClient{NewDBUser(username, password, access)}
+func newDBClient(username, password string, access Access, events Events) *DBClient {
+	return &DBClient{NewDBUser(username, password, access, events)}
 }

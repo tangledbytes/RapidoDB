@@ -15,12 +15,16 @@ type DBUser struct {
 	// tasks which are feasible with the access level assigned
 	// to them during user creation.
 	access Access
+
+	// events determines all the events to which a database
+	// user has subscribed
+	events Events
 }
 
 // NewDBUser creates a new database user object and return it
 // It does not create an entry in the user's database for the user
-func NewDBUser(username, pass string, access Access) DBUser {
-	return DBUser{username, pass, access}
+func NewDBUser(username, pass string, access Access, events Events) DBUser {
+	return DBUser{username, pass, access, events}
 }
 
 // ToDBUser converts an interface{} to DBUser type

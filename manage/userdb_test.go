@@ -16,7 +16,7 @@ func TestUserDB_FindUserByUsername(t *testing.T) {
 	db := &MockDB{make(map[string]interface{})}
 
 	// Add a user to the database
-	db.Set("utkarsh", NewDBUser("utkarsh", "test", 5), db.DefaultExpiry())
+	db.Set("utkarsh", NewDBUser("utkarsh", "test", 5, Events{}), db.DefaultExpiry())
 
 	tests := []struct {
 		name   string
@@ -29,14 +29,14 @@ func TestUserDB_FindUserByUsername(t *testing.T) {
 			"FIND A USER THAT EXISTS",
 			fields{db},
 			args{"utkarsh"},
-			NewDBUser("utkarsh", "test", 5),
+			NewDBUser("utkarsh", "test", 5, Events{}),
 			true,
 		},
 		{
 			"FIND A USER THAT DOESN'T EXISTS",
 			fields{db},
 			args{"utkarsh2"},
-			NewDBUser("", "", 0),
+			NewDBUser("", "", 0, Events{}),
 			false,
 		},
 	}

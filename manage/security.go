@@ -24,6 +24,8 @@ type SecureDB struct {
 	activeClient *DBClient
 }
 
+////////////// DATABASE SPECIFIC COMMANDS //////////////////
+
 // Set method performs set operation on the database after checking
 // the user permissions
 func (sdb *SecureDB) Set(key string, data interface{}, expireIn time.Duration) error {
@@ -68,6 +70,8 @@ func (sdb *SecureDB) Wipe() error {
 	return deniedErr()
 }
 
+////////////// ACTIVE CLIENT SPECIFIC COMMANDS //////////////////
+
 // RegisterUser registers a new user with specified username, password and access level
 // it does not check for the already existing user with the same username. If a user with
 // same username exists then it will overwrite that user's data
@@ -79,7 +83,7 @@ func (sdb *SecureDB) RegisterUser(username, password string, access uint) error 
 		}
 
 		// Add a new user to the userdb
-		sdb.userdb.New(username, password, a)
+		sdb.userdb.New(username, password, a, Events{})
 
 		return nil
 	}
@@ -95,7 +99,33 @@ func (sdb *SecureDB) Authenticate(username, password string) error {
 		return fmt.Errorf("Invalid Credentials")
 	}
 
-	sdb.ChangeActiveClient(user.username, user.password, user.access)
+	sdb.ChangeActiveClient(user.username, user.password, user.access, user.events)
+	return nil
+}
+
+// Ping will subscribe the currently active user to the
+// passed in event. Only admins can use this method
+func (sdb *SecureDB) Ping(event string) error {
+	if !sdb.Authorize(AdminAccess) {
+		return deniedErr()
+	}
+
+	ev, err := ConvertStringToEvent(event)
+	if err != nil {
+		return err
+	}
+
+	username := sdb.activeClient.username
+	password := sdb.activeClient.password
+	access := sdb.activeClient.access
+	events := sdb.activeClient.events.Set(ev)
+
+	// Change the currently active client
+	sdb.ChangeActiveClient(username, password, access, events)
+
+	// Update the same in the users database
+	sdb.userdb.New(username, password, access, events)
+
 	return nil
 }
 
@@ -107,8 +137,14 @@ func (sdb *SecureDB) Authorize(reqAccess Access) bool {
 
 // ChangeActiveClient changes the active client of the database by assigning new username
 // password and access levels to the activeClient attribute
-func (sdb *SecureDB) ChangeActiveClient(username, password string, access Access) {
-	sdb.activeClient = newDBClient(username, password, access)
+func (sdb *SecureDB) ChangeActiveClient(username, password string, access Access, events Events) {
+	sdb.activeClient = newDBClient(username, password, access, events)
+}
+
+// IsSubscribed returns true if the active client has subscribed
+// to the mentioned event
+func (sdb *SecureDB) IsSubscribed(event Event) bool {
+	return sdb.activeClient.events.Exists(event)
 }
 
 // ========================= HELPER FUNCTIONS =============================
