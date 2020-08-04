@@ -45,5 +45,5 @@ func prepareTransportLayer(c net.Conn, l *log.Logger, d *rql.Driver) *transport.
 // it will use the Msg method of the transport layer to push messages
 // to the client
 func prepareTransportExt(c *transport.Client) {
-	transportext.PingClient(c, "op_set", "op_get", "op_delete", "op_wipe")
+	transportext.PingClient(c, "verified_event")
 }

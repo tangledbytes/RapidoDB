@@ -19,7 +19,17 @@ type ObservedDB struct {
 
 // New returns a new observed store
 func New(db *manage.SecureDB) *ObservedDB {
-	return &ObservedDB{db}
+	odb := &ObservedDB{db}
+
+	go setupListenersAndDispatcher(
+		odb,
+		string(opGet),
+		string(opSet),
+		string(opDel),
+		string(opWipe),
+	)
+
+	return odb
 }
 
 // Set is a thin wrapper over the native set method which adds an observer
@@ -30,7 +40,7 @@ func (ost *ObservedDB) Set(key string, data interface{}, expireIn time.Duration)
 	// perform the action
 	err := ost.SecureDB.Set(key, data, expireIn)
 	// publish the event
-	publish("op_set", key, data)
+	publish(opSet, key, data)
 
 	return err
 }
@@ -43,7 +53,7 @@ func (ost *ObservedDB) Get(key string) (interface{}, bool, error) {
 	// perform the action
 	v, ok, err := ost.SecureDB.Get(key)
 	// publish the event
-	publish("op_get", key, v)
+	publish(opGet, key, v)
 
 	return v, ok, err
 }
@@ -56,7 +66,7 @@ func (ost *ObservedDB) Delete(key string) (interface{}, bool, error) {
 	// perform the action
 	v, ok, err := ost.SecureDB.Delete(key)
 	// publish the event
-	publish("op_delete", key, v)
+	publish(opDel, key, v)
 
 	return v, ok, err
 }
@@ -69,12 +79,41 @@ func (ost *ObservedDB) Wipe() error {
 	// perform the action
 	err := ost.SecureDB.Wipe()
 	// publish the event
-	publish("op_wipe", "wipe", true)
+	publish(opWipe, "wipe", true)
 
 	return err
 }
 
 // publish publishes the event to the event bus to be consumed by the subscribers
-func publish(event string, key string, value interface{}) {
-	eventbus.Instance.Publish(event, eventbus.NewDataEvent(key, value))
+func publish(event event, key string, value interface{}) {
+	eventbus.Instance.Publish(string(event), eventbus.NewDataEvent(string(event), key, value))
+}
+
+// setupListenerAndDispatcher sets up the listeners on the multiplexed channel
+// it publishes "verified_event" if an event is subscribed by the current client
+func setupListenersAndDispatcher(odb *ObservedDB, events ...string) {
+	muxcd := eventbus.ChannelMultiplexer(eventbus.Instance, 0, events...)
+
+	for msg := range muxcd {
+		if odb.IsSubscribed(eventToClientEvent(event(msg.Event()))) {
+			publish(verifiedEvent, msg.Key(), msg.Value())
+		}
+	}
+}
+
+// eventToClientEvent converts the local events to the
+// events valid in the client management layer
+func eventToClientEvent(event event) manage.Event {
+	switch event {
+	case opGet:
+		return manage.GET
+	case opSet:
+		return manage.SET
+	case opDel:
+		return manage.DEL
+	case opWipe:
+		return manage.WIPE
+	default:
+		return manage.NULL
+	}
 }

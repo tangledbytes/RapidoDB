@@ -10,9 +10,13 @@ import (
 type Event uint
 
 const (
+	// NULL event indicates an
+	// event
+	NULL Event = iota
+
 	// GET event indicates a GET
 	// operation on the database
-	GET Event = iota
+	GET
 
 	// SET event indicates a SET
 	// operation on the database
@@ -41,7 +45,7 @@ func ConvertStringToEvent(event string) (Event, error) {
 	case "wipe":
 		return WIPE, nil
 	default:
-		return 0, fmt.Errorf("Invalid event")
+		return NULL, fmt.Errorf("Invalid event")
 	}
 }
 

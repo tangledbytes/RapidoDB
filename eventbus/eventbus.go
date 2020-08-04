@@ -15,8 +15,8 @@ type DataChannelSlice []DataChannel
 type DataChannel chan DataEvent
 
 // NewDataEvent creates a new Data Event from the passed key value pairs
-func NewDataEvent(key string, value interface{}) DataEvent {
-	return DataEvent{key, value}
+func NewDataEvent(event string, key string, value interface{}) DataEvent {
+	return DataEvent{event, key, value}
 }
 
 // New returns a new event bus

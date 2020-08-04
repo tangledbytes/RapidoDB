@@ -16,7 +16,9 @@ type ClientConn interface {
 func PingClient(c ClientConn, events ...string) {
 	muxcd := eventbus.ChannelMultiplexer(eventbus.Instance, 0, events...)
 
-	for msg := range muxcd {
-		c.Msg(msg.String())
-	}
+	go func(ch eventbus.DataChannel) {
+		for msg := range muxcd {
+			c.Msg(msg.String())
+		}
+	}(muxcd)
 }

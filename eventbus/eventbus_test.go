@@ -14,13 +14,13 @@ func TestEventBus(t *testing.T) {
 	// Publish events
 	go func() {
 		for i := 0; i < 5; i++ {
-			Instance.Publish("event1", DataEvent{"k1", 1})
+			Instance.Publish("event1", DataEvent{"event1", "k1", 1})
 			time.Sleep(5 * time.Millisecond)
 		}
 	}()
 	go func() {
 		for i := 0; i < 2; i++ {
-			Instance.Publish("event2", DataEvent{"k2", 10})
+			Instance.Publish("event2", DataEvent{"event2", "k2", 10})
 			time.Sleep(10 * time.Millisecond)
 		}
 	}()
@@ -49,6 +49,7 @@ func TestEventBus(t *testing.T) {
 
 func TestNewDataEvent(t *testing.T) {
 	type args struct {
+		event string
 		key   string
 		value interface{}
 	}
@@ -59,13 +60,13 @@ func TestNewDataEvent(t *testing.T) {
 	}{
 		{
 			"CREATE A DATA EVENT",
-			args{"k1", 1234},
-			DataEvent{"k1", 1234},
+			args{"event1", "k1", 1234},
+			DataEvent{"event1", "k1", 1234},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDataEvent(tt.args.key, tt.args.value); !reflect.DeepEqual(got, tt.want) {
+			if got := NewDataEvent(tt.args.event, tt.args.key, tt.args.value); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewDataEvent() = %v, want %v", got, tt.want)
 			}
 		})
@@ -79,19 +80,19 @@ func TestEventBus_ChannelMultiplexer(t *testing.T) {
 	// Publish events
 	go func() {
 		for i := 0; i < 5; i++ {
-			Instance.Publish("ev1", DataEvent{"k1", 1})
+			Instance.Publish("ev1", DataEvent{"ev1", "k1", 1})
 			time.Sleep(5 * time.Millisecond)
 		}
 	}()
 	go func() {
 		for i := 0; i < 2; i++ {
-			Instance.Publish("ev2", DataEvent{"k2", 10})
+			Instance.Publish("ev2", DataEvent{"ev2", "k2", 10})
 			time.Sleep(10 * time.Millisecond)
 		}
 	}()
 	go func() {
 		for i := 0; i < 3; i++ {
-			Instance.Publish("ev3", DataEvent{"k3", 10})
+			Instance.Publish("ev3", DataEvent{"ev3", "k3", 10})
 			time.Sleep(10 * time.Millisecond)
 		}
 	}()
