@@ -127,6 +127,9 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	// get the transporter
 	trl := prepareTransportLayer(c, s.log, tl)
 
+	// setup transport extension
+	prepareTransportExt(trl)
+
 	// Initialise the reader for the client
 	trl.InitRead()
 }

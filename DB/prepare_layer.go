@@ -9,6 +9,7 @@ import (
 	"github.com/utkarsh-pro/RapidoDB/rql"
 	"github.com/utkarsh-pro/RapidoDB/store"
 	"github.com/utkarsh-pro/RapidoDB/transport"
+	"github.com/utkarsh-pro/RapidoDB/transportext"
 )
 
 // prepareStorageLayer prepares the storage layer
@@ -38,4 +39,11 @@ func prepareTranslationLayer(store *observer.ObservedDB) *rql.Driver {
 // to create a transport layer which takes in the remote commands and returns the results
 func prepareTransportLayer(c net.Conn, l *log.Logger, d *rql.Driver) *transport.Client {
 	return transport.New(c, l, d)
+}
+
+// prepareTransportExt prepares and extension to the transport layer
+// it will use the Msg method of the transport layer to push messages
+// to the client
+func prepareTransportExt(c *transport.Client) {
+	transportext.PingClient(c, "op_set", "op_get", "op_delete", "op_wipe")
 }
