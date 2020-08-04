@@ -14,13 +14,6 @@ type DataChannelSlice []DataChannel
 // DataChannel is the go channel for transferring data
 type DataChannel chan DataEvent
 
-// DataEvent is the structure of the message packets
-// that are passed through the event bus
-type DataEvent struct {
-	key   string
-	value interface{}
-}
-
 // NewDataEvent creates a new Data Event from the passed key value pairs
 func NewDataEvent(key string, value interface{}) DataEvent {
 	return DataEvent{key, value}
