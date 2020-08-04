@@ -55,3 +55,20 @@ func (eb *EventBus) Publish(topic string, data DataEvent) {
 
 // Instance is an event bus singleton
 var Instance = New()
+
+// ChannelMultiplexer will take in all the different events and a common
+// buffer for all of them and will create a new data channel out of it
+func ChannelMultiplexer(eb *EventBus, buf uint, events ...string) DataChannel {
+	dest := make(DataChannel, buf)
+
+	// Subscribe to all of the events
+	for _, e := range events {
+		go func(src DataChannel) {
+			for msg := range src {
+				dest <- msg
+			}
+		}(eb.Subscribe(e, buf))
+	}
+
+	return dest
+}
