@@ -118,8 +118,8 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	// get the client manager layer
 	sl := prepareClientManagerLayer(s.store, s.usersStore)
 
-	// get the observer layer
-	ol := prepareObserverLayer(sl)
+	// get the observer layer and the private event bus
+	ol, eb := prepareObserverLayer(sl)
 
 	// get the translation layer
 	tl := prepareTranslationLayer(ol)
@@ -127,8 +127,8 @@ func (s *RapidoDB) clientHandler(c net.Conn) {
 	// get the transporter
 	trl := prepareTransportLayer(c, s.log, tl)
 
-	// setup transport extension
-	prepareTransportExt(trl)
+	// setup transport extension using the private event bus
+	prepareTransportExt(trl, eb)
 
 	// Initialise the reader for the client
 	trl.InitRead()

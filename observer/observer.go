@@ -18,18 +18,20 @@ type ObservedDB struct {
 }
 
 // New returns a new observed store
-func New(db *manage.SecureDB) *ObservedDB {
+func New(db *manage.SecureDB) (*ObservedDB, *eventbus.EventBus) {
 	odb := &ObservedDB{db}
+	eb := eventbus.New()
 
 	go setupListenersAndDispatcher(
 		odb,
+		eb,
 		string(opGet),
 		string(opSet),
 		string(opDel),
 		string(opWipe),
 	)
 
-	return odb
+	return odb, eb
 }
 
 // Set is a thin wrapper over the native set method which adds an observer
@@ -91,12 +93,18 @@ func publish(event event, key string, value interface{}) {
 
 // setupListenerAndDispatcher sets up the listeners on the multiplexed channel
 // it publishes "verified_event" if an event is subscribed by the current client
-func setupListenersAndDispatcher(odb *ObservedDB, events ...string) {
+func setupListenersAndDispatcher(odb *ObservedDB, eb *eventbus.EventBus, events ...string) {
 	muxcd := eventbus.ChannelMultiplexer(eventbus.Instance, 0, events...)
 
 	for msg := range muxcd {
 		if odb.IsSubscribed(eventToClientEvent(event(msg.Event()))) {
-			publish(verifiedEvent, msg.Key(), msg.Value())
+			eb.Publish(
+				string(verifiedEvent),
+				eventbus.NewDataEvent(string(msg.Event()),
+					msg.Key(),
+					msg.Value(),
+				),
+			)
 		}
 	}
 }

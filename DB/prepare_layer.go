@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/utkarsh-pro/RapidoDB/eventbus"
 	"github.com/utkarsh-pro/RapidoDB/manage"
 	"github.com/utkarsh-pro/RapidoDB/observer"
 	"github.com/utkarsh-pro/RapidoDB/rql"
@@ -25,7 +26,7 @@ func prepareClientManagerLayer(store *store.Store, userdb *store.Store) *manage.
 
 // prepareObserverLayer takes in a securedb and adds a thin layer of observer
 // on that database which can publish events to the event bus
-func prepareObserverLayer(sdb *manage.SecureDB) *observer.ObservedDB {
+func prepareObserverLayer(sdb *manage.SecureDB) (*observer.ObservedDB, *eventbus.EventBus) {
 	return observer.New(sdb)
 }
 
@@ -44,6 +45,6 @@ func prepareTransportLayer(c net.Conn, l *log.Logger, d *rql.Driver) *transport.
 // prepareTransportExt prepares and extension to the transport layer
 // it will use the Msg method of the transport layer to push messages
 // to the client
-func prepareTransportExt(c *transport.Client) {
-	transportext.PingClient(c, "verified_event")
+func prepareTransportExt(c *transport.Client, eb *eventbus.EventBus) {
+	transportext.PingClient(c, eb, "verified_event")
 }

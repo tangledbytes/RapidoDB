@@ -13,8 +13,8 @@ type ClientConn interface {
 // PingClient takes in a net.Conn object and variadic number
 // of events to which this will subscribe and will automatically
 // send them to the client
-func PingClient(c ClientConn, events ...string) {
-	muxcd := eventbus.ChannelMultiplexer(eventbus.Instance, 0, events...)
+func PingClient(c ClientConn, eb *eventbus.EventBus, events ...string) {
+	muxcd := eventbus.ChannelMultiplexer(eb, 0, events...)
 
 	go func(ch eventbus.DataChannel) {
 		for msg := range muxcd {
