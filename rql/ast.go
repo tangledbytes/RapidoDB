@@ -18,6 +18,7 @@ type Statement struct {
 	AuthStatement    *AuthStatement
 	WipeStatement    *WipeStatement
 	RegUserStatement *RegUserStatement
+	PingStatement    *PingStatement
 	Typ              AstType
 }
 
@@ -55,6 +56,11 @@ type RegUserStatement struct {
 	access   uint
 }
 
+// PingStatement contains the structure for a "PING ON" command
+type PingStatement struct {
+	operation string
+}
+
 // AstType represents the type of abstract syntax tree
 type AstType uint
 
@@ -87,6 +93,7 @@ const (
 	AuthType
 	WipeType
 	RegUserType
+	PingType
 )
 
 // ===========================================================================
@@ -94,8 +101,27 @@ const (
 func (a Ast) String() string {
 	s := "[ "
 	for _, stmt := range a.Statements {
-		s += fmt.Sprintf("%+v", stmt.SetStatement)
-		s += fmt.Sprintf("%+v", stmt.GetStatement)
+		if stmt.SetStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.SetStatement)
+		}
+		if stmt.GetStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.GetStatement)
+		}
+		if stmt.DeleteStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.DeleteStatement)
+		}
+		if stmt.WipeStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.WipeStatement)
+		}
+		if stmt.AuthStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.AuthStatement)
+		}
+		if stmt.RegUserStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.RegUserStatement)
+		}
+		if stmt.PingStatement != nil {
+			s += fmt.Sprintf("%+v", stmt.PingStatement)
+		}
 	}
 
 	return s + " ]"

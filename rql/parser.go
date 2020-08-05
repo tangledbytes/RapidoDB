@@ -65,7 +65,6 @@ func Parse(source string) (*Ast, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	a := Ast{}
 	cursor := uint(0)
 	for cursor < uint(len(tokens)) {
@@ -76,6 +75,10 @@ func Parse(source string) (*Ast, error) {
 		cursor = newCursor
 
 		a.Statements = append(a.Statements, stmt)
+
+		if err != nil {
+			return &a, err
+		}
 
 		atLeastOneSemicolon := false
 		for expectToken(tokens, cursor, tokenFromSymbol(semicolonSymbol)) {
@@ -97,7 +100,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	// Look for a SET statement
 	semicolonToken := tokenFromSymbol(semicolonSymbol)
 	set, newCursor, ok, err := parseSetStatement(tokens, cursor, semicolonToken)
-	if ok || err != nil {
+	if ok {
 		return &Statement{
 			Typ:          SetType,
 			SetStatement: set,
@@ -106,7 +109,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 
 	// Look for a GET statement
 	get, newCursor, ok, err := parseGetStatement(tokens, cursor, semicolonToken)
-	if ok || err != nil {
+	if ok {
 		return &Statement{
 			Typ:          GetType,
 			GetStatement: get,
@@ -115,7 +118,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 
 	// Look for a DEL statement
 	del, newCursor, ok, err := parseDeleteStatement(tokens, cursor, semicolonToken)
-	if ok || err != nil {
+	if ok {
 		return &Statement{
 			Typ:             DeleteType,
 			DeleteStatement: del,
@@ -124,7 +127,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 
 	// Look for a AUTH statement
 	auth, newCursor, ok, err := parseAuthStatement(tokens, cursor, semicolonToken)
-	if ok || err != nil {
+	if ok {
 		return &Statement{
 			Typ:           AuthType,
 			AuthStatement: auth,
@@ -133,7 +136,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 
 	// Look for a WIPE statement
 	wipe, newCursor, ok, err := parseWipeStatement(tokens, cursor, semicolonToken)
-	if ok || err != nil {
+	if ok {
 		return &Statement{
 			Typ:           WipeType,
 			WipeStatement: wipe,
@@ -142,12 +145,22 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 
 	// Look for a REGUSER statement
 	reguser, newCursor, ok, err := parseRegUserStatement(tokens, cursor, semicolonToken)
-	if ok || err != nil {
+	if ok {
 		return &Statement{
 			Typ:              RegUserType,
 			RegUserStatement: reguser,
 		}, newCursor, true, err
 	}
+
+	// Look for a PING statement
+	ping, newCursor, ok, err := parsePingStatement(tokens, cursor, semicolonToken)
+	if ok {
+		return &Statement{
+			Typ:           PingType,
+			PingStatement: ping,
+		}, newCursor, true, err
+	}
+
 	return nil, initialCursor, false, nil
 }
 
@@ -164,14 +177,14 @@ func parseSetStatement(tokens []*token, initialCursor uint, delimiter token) (*S
 	// Look for the key name
 	key, newCursor, ok := parseToken(tokens, cursor, identifierType)
 	if !ok {
-		return nil, initialCursor, false, errors.New(helpMessage(tokens, cursor, "Expected a key name"))
+		return nil, initialCursor, true, errors.New(helpMessage(tokens, cursor, "Expected a key name"))
 	}
 	cursor = newCursor
 
 	// Look for the value
 	val, newCursor, ok := parseExpression(tokens, cursor)
 	if !ok {
-		return nil, initialCursor, false, errors.New(helpMessage(tokens, cursor, "Expected a value"))
+		return nil, initialCursor, true, errors.New(helpMessage(tokens, cursor, "Expected a value"))
 	}
 	cursor = newCursor
 
@@ -186,7 +199,7 @@ func parseSetStatement(tokens []*token, initialCursor uint, delimiter token) (*S
 
 	expVal, err := strconv.ParseUint(exp.val, 10, 32)
 	if err != nil {
-		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "Invalid expiry provided"))
+		return nil, cursor, true, errors.New(helpMessage(tokens, cursor, "Invalid expiry provided"))
 	}
 	cursor = newCursor
 
@@ -210,7 +223,7 @@ func parseGetStatement(tokens []*token, initialCursor uint, delimiter token) (*G
 		if !ok {
 			// Check if the token is semicolon
 			if !expectToken(tokens, newCursor, tokenFromSymbol(semicolonSymbol)) {
-				return nil, newCursor, false, errors.New(helpMessage(tokens, cursor, "Invalid key name"))
+				return nil, newCursor, true, errors.New(helpMessage(tokens, cursor, "Invalid key name"))
 			}
 
 			return &GetStatement{keys}, cursor, true, nil
@@ -238,7 +251,7 @@ func parseDeleteStatement(tokens []*token, initialCursor uint, delimiter token) 
 		if !ok {
 			// Check if the token is semicolon
 			if !expectToken(tokens, newCursor, tokenFromSymbol(semicolonSymbol)) {
-				return nil, newCursor, false, errors.New(helpMessage(tokens, cursor, "Invalid key name"))
+				return nil, newCursor, true, errors.New(helpMessage(tokens, cursor, "Invalid key name"))
 			}
 
 			return &DeleteStatement{keys}, cursor, true, nil
@@ -262,14 +275,14 @@ func parseAuthStatement(tokens []*token, initialCursor uint, delimiter token) (*
 	// Look for the username
 	username, newCursor, ok := parseToken(tokens, cursor, identifierType)
 	if !ok {
-		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "username not found"))
+		return nil, cursor, true, errors.New(helpMessage(tokens, cursor, "username not found"))
 	}
 	cursor = newCursor
 
 	// Look for the password
 	password, newCursor, ok := parseToken(tokens, cursor, identifierType)
 	if !ok {
-		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "password not found"))
+		return nil, cursor, true, errors.New(helpMessage(tokens, cursor, "password not found"))
 	}
 	cursor = newCursor
 
@@ -302,14 +315,14 @@ func parseRegUserStatement(tokens []*token, initialCursor uint, delimiter token)
 	// Look for the username
 	username, newCursor, ok := parseToken(tokens, cursor, identifierType)
 	if !ok {
-		return nil, initialCursor, false, errors.New(helpMessage(tokens, cursor, "Expected a username"))
+		return nil, initialCursor, true, errors.New(helpMessage(tokens, cursor, "Expected a username"))
 	}
 	cursor = newCursor
 
 	// Look for the username
 	password, newCursor, ok := parseToken(tokens, cursor, identifierType)
 	if !ok {
-		return nil, initialCursor, false, errors.New(helpMessage(tokens, cursor, "Expected a password"))
+		return nil, initialCursor, true, errors.New(helpMessage(tokens, cursor, "Expected a password"))
 	}
 	cursor = newCursor
 
@@ -324,11 +337,41 @@ func parseRegUserStatement(tokens []*token, initialCursor uint, delimiter token)
 
 	accesslevel, err := strconv.ParseUint(exp.val, 10, 16)
 	if err != nil {
-		return nil, cursor, false, errors.New(helpMessage(tokens, cursor, "Invalid access level provided"))
+		return nil, cursor, true, errors.New(helpMessage(tokens, cursor, "Invalid access level provided"))
 	}
 	cursor = newCursor
 
 	return &RegUserStatement{username.val, password.val, uint(accesslevel)}, cursor, true, nil
+}
+
+func parsePingStatement(tokens []*token, initialCursor uint, delimiter token) (*PingStatement, uint, bool, error) {
+	// PING ON <OPERATION>
+	cursor := initialCursor
+
+	// Look for "PING" keyword
+	if !expectToken(tokens, cursor, tokenFromKeyword(pingKeyword)) {
+		return nil, initialCursor, false, nil
+	}
+	cursor++
+
+	// Look for "ON" keyword
+	if !expectToken(tokens, cursor, tokenFromKeyword(onKeyword)) {
+		return &PingStatement{}, cursor, true, errors.New(helpMessage(tokens, cursor, "Expected ON after PING"))
+	}
+	cursor++
+
+	// Look for any of the keywords from "GET", "SET", "DEL", "WIPE"
+	keywords := []keyword{setKeyword, getKeyword, delKeyword, wipeKeyword}
+
+	for _, kw := range keywords {
+		tk := tokenFromKeyword(kw)
+		if expectToken(tokens, cursor, tk) {
+			cursor++
+			return &PingStatement{tk.val}, cursor, true, nil
+		}
+	}
+
+	return nil, cursor, true, errors.New(helpMessage(tokens, cursor, "Expected a valid operation"))
 }
 
 func parseExpression(tokens []*token, initialCursor uint) (*token, uint, bool) {

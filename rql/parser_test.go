@@ -154,6 +154,34 @@ func TestParse(t *testing.T) {
 			false,
 		},
 		{
+			"WIPE STATEMENT",
+			args{`WIPE;`},
+			&Ast{
+				Statements: []*Statement{
+					{
+						WipeStatement: &WipeStatement{},
+						Typ:           WipeType,
+					},
+				},
+			},
+			false,
+		},
+		{
+			"VALID PING STATEMENT",
+			args{`PING ON GET;`},
+			&Ast{
+				Statements: []*Statement{
+					{
+						PingStatement: &PingStatement{
+							operation: "get",
+						},
+						Typ: PingType,
+					},
+				},
+			},
+			false,
+		},
+		{
 			"MIX STATEMENTS",
 			args{`SET data "Hello World"; GET data data1 data2 data3; DEL data data1 data2 data3; GET data; DEL data;`},
 			&Ast{
