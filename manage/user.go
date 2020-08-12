@@ -2,23 +2,23 @@ package manage
 
 // DBUser represents a user of the database
 type DBUser struct {
-	// username is the username that the user of the
+	// Username is the Username that the user of the
 	// database is supposed to use to authenticate themselves
-	username string
+	Username string
 
-	// password is the password that the user of the database
+	// Password is the Password that the user of the database
 	// is supposed to use to authenticate themselves
-	password string
+	Password string
 
-	// access determines what kind of permissions were allocated
+	// Access determines what kind of permissions were allocated
 	// for a certain user. A user will be able to do only the
-	// tasks which are feasible with the access level assigned
+	// tasks which are feasible with the Access level assigned
 	// to them during user creation.
-	access Access
+	Access Access
 
-	// events determines all the events to which a database
+	// Events determines all the Events to which a database
 	// user has subscribed
-	events Events
+	Events Events
 }
 
 // NewDBUser creates a new database user object and return it
@@ -33,7 +33,41 @@ func NewDBUser(username, pass string, access Access, events Events) DBUser {
 func ToDBUser(data interface{}) DBUser {
 	v, ok := data.(DBUser)
 	if !ok {
-		panic("Invalid user exists in the DBUser store")
+		// Check if the data is of type "map", if posible then create a dbuser from the map
+		mp, ok := data.(map[string]interface{})
+		if !ok {
+			panic("Invalid user exists in the DBUser store")
+		}
+
+		// Check if "Username" is available
+		iun, ok := mp["Username"]
+		un, ok := iun.(string)
+		if !ok {
+			panic("Invalid user exists in the DBUser store: Invalid username")
+		}
+
+		// Check if "Password" is available
+		ips, ok := mp["Password"]
+		ps, ok := ips.(string)
+		if !ok {
+			panic("Invalid user exists in the DBUser store: Invalid password")
+		}
+
+		// Check if "Access" is available
+		iac, ok := mp["Access"]
+		ac, ok := iac.(float64)
+		if !ok {
+			panic("Invalid user exists in the DBUser store: Invalid access type")
+		}
+
+		// Check if "Events" is available
+		iev, ok := mp["Events"]
+		ev, ok := iev.([]interface{})
+		if !ok {
+			panic("Invalid user exists in the DBUser store: Invalid events")
+		}
+
+		v = NewDBUser(un, ps, Access(ac), convertInterfaceSliceToEvents(ev))
 	}
 
 	return v

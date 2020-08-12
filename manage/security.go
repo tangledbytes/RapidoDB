@@ -95,11 +95,11 @@ func (sdb *SecureDB) RegisterUser(username, password string, access uint) error 
 // active client to that allocated to it
 func (sdb *SecureDB) Authenticate(username, password string) error {
 	user, ok := sdb.userdb.FindUserByUsername(username)
-	if !ok || user.password != password {
+	if !ok || user.Password != password {
 		return fmt.Errorf("Invalid Credentials")
 	}
 
-	sdb.ChangeActiveClient(user.username, user.password, user.access, user.events)
+	sdb.ChangeActiveClient(user.Username, user.Password, user.Access, user.Events)
 	return nil
 }
 
@@ -115,10 +115,10 @@ func (sdb *SecureDB) Ping(event string) error {
 		return err
 	}
 
-	username := sdb.activeClient.username
-	password := sdb.activeClient.password
-	access := sdb.activeClient.access
-	events := sdb.activeClient.events.Set(ev)
+	username := sdb.activeClient.Username
+	password := sdb.activeClient.Password
+	access := sdb.activeClient.Access
+	events := sdb.activeClient.Events.Set(ev)
 
 	// Change the currently active client
 	sdb.ChangeActiveClient(username, password, access, events)
@@ -132,7 +132,7 @@ func (sdb *SecureDB) Ping(event string) error {
 // Authorize authorizes the requests and returns true if a client
 // is permitted to perform a certain action
 func (sdb *SecureDB) Authorize(reqAccess Access) bool {
-	return sdb.activeClient.access >= reqAccess
+	return sdb.activeClient.Access >= reqAccess
 }
 
 // ChangeActiveClient changes the active client of the database by assigning new username
@@ -144,7 +144,7 @@ func (sdb *SecureDB) ChangeActiveClient(username, password string, access Access
 // IsSubscribed returns true if the active client has subscribed
 // to the mentioned event
 func (sdb *SecureDB) IsSubscribed(event Event) bool {
-	return sdb.activeClient.events.Exists(event)
+	return sdb.activeClient.Events.Exists(event)
 }
 
 // ========================= HELPER FUNCTIONS =============================

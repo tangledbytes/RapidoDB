@@ -73,3 +73,19 @@ func (e Events) Exists(event Event) bool {
 
 	return false
 }
+
+// convertInterfaceSliceTEvents will attempt to convert a
+// arra of interfaces to Events object. It panics if the the
+// type assertion fails
+func convertInterfaceSliceToEvents(ui []interface{}) Events {
+	var ev Events
+	for _, v := range ui {
+		d, ok := v.(uint)
+		if !ok {
+			panic("Cannot convert interface to Event")
+		}
+		ev = ev.Set(Event(d))
+	}
+
+	return ev
+}

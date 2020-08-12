@@ -615,7 +615,7 @@ func TestSecureDB_Ping(t *testing.T) {
 					ev = WIPE
 				}
 
-				for _, e := range sdb.activeClient.events {
+				for _, e := range sdb.activeClient.Events {
 					if e == ev {
 						exists = true
 						break
@@ -623,12 +623,12 @@ func TestSecureDB_Ping(t *testing.T) {
 				}
 
 				if !exists {
-					t.Errorf("Event not added to the active users subscriptions, got = %v", sdb.activeClient.events)
+					t.Errorf("Event not added to the active users subscriptions, got = %v", sdb.activeClient.Events)
 				}
 
 				// Check if event now exists for the user in the users db
 				exists = false
-				user, ok := udb.FindUserByUsername(sdb.activeClient.username)
+				user, ok := udb.FindUserByUsername(sdb.activeClient.Username)
 
 				if !ok {
 					t.Errorf("User was not created after subscribing to the event")
@@ -646,7 +646,7 @@ func TestSecureDB_Ping(t *testing.T) {
 					ev = WIPE
 				}
 
-				for _, e := range user.events {
+				for _, e := range user.Events {
 					if e == ev {
 						exists = true
 						break
@@ -654,7 +654,7 @@ func TestSecureDB_Ping(t *testing.T) {
 				}
 
 				if !exists {
-					t.Errorf("Event not added to the active users subscriptions, got = %v", user.events)
+					t.Errorf("Event not added to the active users subscriptions, got = %v", user.Events)
 				}
 			}
 		})

@@ -111,3 +111,27 @@ func TestConvertStringToEvent(t *testing.T) {
 		})
 	}
 }
+
+func Test_convertInterfaceSliceToEvents(t *testing.T) {
+	type args struct {
+		ui []interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want Events
+	}{
+		{
+			"CONVERT AN INTERFACE SLICE TO EVENTS TYPE",
+			args{[]interface{}{uint(1), uint(2), uint(3)}},
+			Events{1, 2, 3},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := convertInterfaceSliceToEvents(tt.args.ui); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("convertInterfaceSliceToEvents() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
