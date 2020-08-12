@@ -14,8 +14,8 @@ import (
 )
 
 // prepareStorageLayer prepares the storage layer
-func prepareStorageLayer() *store.Store {
-	return store.New(store.NeverExpire)
+func prepareStorageLayer(log *log.Logger, backup string) *store.Store {
+	return store.New(store.NeverExpire, log, backup)
 }
 
 // prepareClientManagerLayer takes in a store and a userdb which it uses

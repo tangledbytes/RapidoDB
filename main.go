@@ -22,11 +22,12 @@ func main() {
 	PORT := getEnv("RAPIDO_PORT", defaultPort)
 	PASS := getEnv("RAPIDO_PASS", defaultPass)
 	USER := getEnv("RAPIDO_USER", defaultUser)
+	BACKUP := getEnv("HOME", "")
 
 	// Print the RapidoDB logo
 	fmt.Println(db.RapidoMSG)
 
-	database := db.New(log.New(os.Stdout, "[RAPIDO DB]: ", log.LstdFlags), PORT, USER, PASS)
+	database := db.New(log.New(os.Stdout, "[RAPIDO DB]: ", log.LstdFlags), PORT, USER, PASS, BACKUP)
 
 	database.Run()
 }

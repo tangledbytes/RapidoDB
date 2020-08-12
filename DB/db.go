@@ -22,7 +22,6 @@
 package db
 
 import (
-	"fmt"
 	"log"
 	"net"
 
@@ -30,7 +29,8 @@ import (
 	"github.com/utkarsh-pro/RapidoDB/store"
 )
 
-const msg = `
+// RapidoMSG is the ascii logo for rapidoDB
+const RapidoMSG = `
 ************************************************
    ____             _     _       ____  ____  
   |  _ \ __ _ _ __ (_) __| | ___ |  _ \| __ ) 
@@ -58,12 +58,12 @@ type RapidoDB struct {
 }
 
 // New returns an instance of the Server object
-func New(log *log.Logger, PORT, username, password string) *RapidoDB {
+func New(log *log.Logger, PORT, username, password, bckpath string) *RapidoDB {
 	// Create a new store for the database
-	storage := prepareStorageLayer()
+	storage := prepareStorageLayer(log, bckpath+"/rapido.db")
 
 	// Create a new store for the users
-	usersDB := store.New(store.NeverExpire)
+	usersDB := store.New(store.NeverExpire, log, bckpath+"/rapido_user.db")
 
 	usersDB.Set(username,
 		manage.NewDBUser(username, password, manage.AdminAccess, manage.Events{}), usersDB.DefaultExpiry(),
@@ -87,7 +87,6 @@ func (s *RapidoDB) setupTCPServer() net.Listener {
 		s.log.Fatalf("Listen setup failed: %s", err)
 	}
 
-	fmt.Println(msg)
 	s.log.Println("Started server on PORT", s.PORT)
 	s.log.Println("Accepting Connections")
 
