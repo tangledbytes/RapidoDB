@@ -8,7 +8,7 @@ import (
 
 func BenchmarkStore_Set(b *testing.B) {
 	// Create a store
-	var store = New(-1)
+	var store = New(-1, nil, "")
 	for i := 0; i < b.N; i++ {
 		store.Set("key"+strconv.Itoa(i), i, NeverExpire)
 	}
@@ -16,14 +16,14 @@ func BenchmarkStore_Set(b *testing.B) {
 
 func BenchmarkStore_Get(b *testing.B) {
 	// Create a store
-	var store = New(-1)
+	var store = New(-1, nil, "")
 	for i := 0; i < b.N; i++ {
 		store.Get("key" + strconv.Itoa(i))
 	}
 }
 
 func TestStore(t *testing.T) {
-	ts := New(NeverExpire)
+	ts := New(NeverExpire, nil, "")
 
 	i1, ok := ts.Get("k1")
 

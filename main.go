@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -21,6 +22,9 @@ func main() {
 	PORT := getEnv("RAPIDO_PORT", defaultPort)
 	PASS := getEnv("RAPIDO_PASS", defaultPass)
 	USER := getEnv("RAPIDO_USER", defaultUser)
+
+	// Print the RapidoDB logo
+	fmt.Println(db.RapidoMSG)
 
 	database := db.New(log.New(os.Stdout, "[RAPIDO DB]: ", log.LstdFlags), PORT, USER, PASS)
 

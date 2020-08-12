@@ -7,12 +7,12 @@ import (
 // Item struct encapsualtes how an item
 // is represented inside the store
 type Item struct {
-	// expireAt stores the unix timestamp in NANOSECONDS
+	// ExpireAt stores the unix timestamp in NANOSECONDS
 	// of the time when a data should be expired
-	expireAt int64
+	ExpireAt int64
 
-	// data can be anything of any type
-	data interface{}
+	// Data can be anything of any type
+	Data interface{}
 }
 
 // newItem returns a new item that can be stored in the database
@@ -36,9 +36,9 @@ func newItem(data interface{}, expireIn time.Duration) Item {
 
 // isExpired returns true if an item is expired
 func (item Item) isExpired() bool {
-	if item.expireAt == NeverExpire {
+	if item.ExpireAt == NeverExpire {
 		return false
 	}
 
-	return item.expireAt < time.Now().UnixNano()
+	return item.ExpireAt < time.Now().UnixNano()
 }

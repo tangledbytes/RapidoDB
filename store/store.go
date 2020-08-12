@@ -1,6 +1,7 @@
 package store
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -14,6 +15,10 @@ const (
 	// It is hardcoded at the moment but shall be made configurable
 	// in the future
 	janitorInterval = 10 * time.Second
+
+	// Peristence interval will determin that at what intervals the
+	// the persistor will be triggered to store the data onto the disk
+	persistorInterval = 1 * time.Minute
 )
 
 // Store struct encapsulates the store used by the database
@@ -22,18 +27,25 @@ type Store struct {
 	defaultExpiry time.Duration
 	data          map[string]Item
 	janitor       *janitor
+	persistor     *persistor
+	log           *log.Logger
 }
 
 // New returns a new store
-func New(defaultExpiry time.Duration) *Store {
+func New(defaultExpiry time.Duration, log *log.Logger, bckup string) *Store {
 	s := &Store{
 		defaultExpiry: defaultExpiry,
 		data:          make(map[string]Item),
 		janitor:       newJanitor(janitorInterval),
+		persistor:     newPersistor(persistorInterval, bckup),
+		log:           log,
 	}
 
 	// Setup janitor for this store
 	setupJanitor(s)
+
+	// setup persistor for this store
+	setupPersistor(s)
 
 	return s
 }
@@ -59,7 +71,7 @@ func (store *Store) Get(key string) (interface{}, bool) {
 	}
 
 	store.RUnlock()
-	return item.data, true
+	return item.Data, true
 }
 
 // Delete method deletes a key from the store. If the key doesn't exists
@@ -83,12 +95,12 @@ func (store *Store) Delete(key string) (interface{}, bool) {
 		// if the key doesn't exists in the map
 		delete(store.data, key)
 		store.Unlock()
-		return item.data, ok
+		return item.Data, ok
 	}
 
 	store.Unlock()
 
-	return item.data, ok
+	return item.Data, ok
 }
 
 // DeleteExpired loops through the store and deletes
@@ -122,4 +134,12 @@ func (store *Store) Wipe() {
 // DefaultExpiry returns the default expiry of the store items
 func (store *Store) DefaultExpiry() time.Duration {
 	return store.defaultExpiry
+}
+
+// llog takes in a pointer to the logger and the message to
+// be printed. If the logger is nil then it does nothing
+func llog(logger *log.Logger, cmd ...interface{}) {
+	if logger != nil {
+		logger.Println(cmd...)
+	}
 }
