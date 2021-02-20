@@ -1,12 +1,12 @@
 package manage
 
 // DBClient is composed of DBUser
-// They both are very simialr in nature but are
+// They both are very similar in nature but are
 // intended for different use cases
 //
 // DBUser is meant to indicate a user in the database
 // whereas a DBClient is meant to represent the current
-// active client which could anyone of the user mentioned
+// active client which could be anyone of the users mentioned
 // in the user's database
 type DBClient struct {
 	DBUser
