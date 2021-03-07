@@ -74,8 +74,8 @@ func (e Events) Exists(event Event) bool {
 	return false
 }
 
-// convertInterfaceSliceTEvents will attempt to convert a
-// arra of interfaces to Events object. It panics if the the
+// convertInterfaceSliceToEvents will attempt to convert an
+// array of interfaces to Events object. It panics if the the
 // type assertion fails
 func convertInterfaceSliceToEvents(ui []interface{}) Events {
 	var ev Events

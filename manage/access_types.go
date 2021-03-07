@@ -22,11 +22,11 @@ const (
 	// user can create new users
 	ModifyUserAccess
 
-	// WipeAccess access type indicated that a user
+	// WipeAccess access type indicates that a user
 	// can wipe out the database
 	WipeAccess
 
-	// AdminAccess access type indicated that a user
+	// AdminAccess access type indicates that a user
 	// is an admin and hence can perform all of the above tasks
 	AdminAccess
 )
