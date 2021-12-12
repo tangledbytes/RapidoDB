@@ -98,8 +98,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	cursor := initialCursor
 
 	// Look for a SET statement
-	semicolonToken := tokenFromSymbol(semicolonSymbol)
-	set, newCursor, ok, err := parseSetStatement(tokens, cursor, semicolonToken)
+	set, newCursor, ok, err := parseSetStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:          SetType,
@@ -108,7 +107,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	}
 
 	// Look for a GET statement
-	get, newCursor, ok, err := parseGetStatement(tokens, cursor, semicolonToken)
+	get, newCursor, ok, err := parseGetStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:          GetType,
@@ -117,7 +116,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	}
 
 	// Look for a DEL statement
-	del, newCursor, ok, err := parseDeleteStatement(tokens, cursor, semicolonToken)
+	del, newCursor, ok, err := parseDeleteStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:             DeleteType,
@@ -126,7 +125,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	}
 
 	// Look for a AUTH statement
-	auth, newCursor, ok, err := parseAuthStatement(tokens, cursor, semicolonToken)
+	auth, newCursor, ok, err := parseAuthStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:           AuthType,
@@ -135,7 +134,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	}
 
 	// Look for a WIPE statement
-	wipe, newCursor, ok, err := parseWipeStatement(tokens, cursor, semicolonToken)
+	wipe, newCursor, ok, err := parseWipeStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:           WipeType,
@@ -144,7 +143,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	}
 
 	// Look for a REGUSER statement
-	reguser, newCursor, ok, err := parseRegUserStatement(tokens, cursor, semicolonToken)
+	reguser, newCursor, ok, err := parseRegUserStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:              RegUserType,
@@ -153,7 +152,7 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 	}
 
 	// Look for a PING statement
-	ping, newCursor, ok, err := parsePingStatement(tokens, cursor, semicolonToken)
+	ping, newCursor, ok, err := parsePingStatement(tokens, cursor, delimiter)
 	if ok {
 		return &Statement{
 			Typ:           PingType,
@@ -221,8 +220,8 @@ func parseGetStatement(tokens []*token, initialCursor uint, delimiter token) (*G
 	for {
 		key, newCursor, ok := parseToken(tokens, cursor, identifierType)
 		if !ok {
-			// Check if the token is semicolon
-			if !expectToken(tokens, newCursor, tokenFromSymbol(semicolonSymbol)) {
+			// Check if the token is the delimiter
+			if !expectToken(tokens, newCursor, delimiter) {
 				return nil, newCursor, true, errors.New(helpMessage(tokens, cursor, "Invalid key name"))
 			}
 
@@ -249,8 +248,8 @@ func parseDeleteStatement(tokens []*token, initialCursor uint, delimiter token) 
 	for {
 		key, newCursor, ok := parseToken(tokens, cursor, identifierType)
 		if !ok {
-			// Check if the token is semicolon
-			if !expectToken(tokens, newCursor, tokenFromSymbol(semicolonSymbol)) {
+			// Check if the token is the delimiter
+			if !expectToken(tokens, newCursor, delimiter) {
 				return nil, newCursor, true, errors.New(helpMessage(tokens, cursor, "Invalid key name"))
 			}
 
