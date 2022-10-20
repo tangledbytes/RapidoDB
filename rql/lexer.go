@@ -51,7 +51,7 @@ const (
 	reguserKeyword keyword = "reguser"
 	pingKeyword    keyword = "ping"
 	onKeyword      keyword = "on"
-
+	offKeyword     keyword = "off"
 	// Data types
 	// numberKeyword keyword = "number"
 	// stringKeyword keyword = "string"
@@ -157,7 +157,7 @@ func lexKeyword(source string, ic cursor) (*token, cursor, bool) {
 		reguserKeyword,
 		pingKeyword,
 		onKeyword,
-
+		offKeyword,
 		// Data types
 		// numberKeyword,
 		// stringKeyword,

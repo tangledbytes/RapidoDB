@@ -591,7 +591,7 @@ func TestSecureDB_Ping(t *testing.T) {
 				activeClient: tt.fields.activeClient,
 			}
 
-			err := sdb.Ping(tt.args.event)
+			err := sdb.Ping(tt.args.event, true)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SecureDB.Ping() error = %v, wantErr %v", err, tt.wantErr)

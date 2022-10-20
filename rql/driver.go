@@ -14,7 +14,7 @@ type SecureDB interface {
 	Wipe() error
 	Authenticate(username string, password string) error
 	RegisterUser(username string, password string, access uint) error
-	Ping(event string) error
+	Ping(event string, on bool) error
 }
 
 // Driver is the RQL driver which acts as an interface between a database client and
@@ -183,11 +183,15 @@ func (d *Driver) reguser(stmt *RegUserStatement) (string, error) {
 // ping takes in the operation to subscribe and subscribe to the operation
 // if is the user has access to such operation
 func (d *Driver) ping(stmt *PingStatement) (string, error) {
-	if err := d.db.Ping(stmt.operation); err != nil {
+	if err := d.db.Ping(stmt.operation, stmt.on); err != nil {
 		return "", err
 	}
+	if stmt.on {
+		return "Subscribed to " + stmt.operation, nil
+	} else {
+		return "Unsubscribed from " + stmt.operation, nil
+	}
 
-	return "Subscribed to " + stmt.operation, nil
 }
 
 // ============================ HELPER FUNCTIONS ===================================

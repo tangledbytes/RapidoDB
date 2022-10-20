@@ -62,7 +62,7 @@ func TestEvents_Exists(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.e.Exists(tt.args.event); got != tt.want {
+			if _, got := tt.e.Exists(tt.args.event); got != tt.want {
 				t.Errorf("Events.Exists() = %v, want %v", got, tt.want)
 			}
 		})

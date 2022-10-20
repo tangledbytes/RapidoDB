@@ -159,7 +159,6 @@ func parseStatement(tokens []*token, initialCursor uint, delimiter token) (*Stat
 			PingStatement: ping,
 		}, newCursor, true, err
 	}
-
 	return nil, initialCursor, false, nil
 }
 
@@ -352,10 +351,13 @@ func parsePingStatement(tokens []*token, initialCursor uint, delimiter token) (*
 		return nil, initialCursor, false, nil
 	}
 	cursor++
-
-	// Look for "ON" keyword
+	on := true
+	// Look for "ON" or "OFF" keyword
 	if !expectToken(tokens, cursor, tokenFromKeyword(onKeyword)) {
-		return &PingStatement{}, cursor, true, errors.New(helpMessage(tokens, cursor, "Expected ON after PING"))
+		on = false
+		if !expectToken(tokens, cursor, tokenFromKeyword(offKeyword)) {
+			return &PingStatement{}, cursor, true, errors.New(helpMessage(tokens, cursor, "Expected ON or OFF after PING"))
+		}
 	}
 	cursor++
 
@@ -366,7 +368,7 @@ func parsePingStatement(tokens []*token, initialCursor uint, delimiter token) (*
 		tk := tokenFromKeyword(kw)
 		if expectToken(tokens, cursor, tk) {
 			cursor++
-			return &PingStatement{tk.val}, cursor, true, nil
+			return &PingStatement{on, tk.val}, cursor, true, nil
 		}
 	}
 
