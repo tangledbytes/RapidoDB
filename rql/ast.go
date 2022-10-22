@@ -58,6 +58,7 @@ type RegUserStatement struct {
 
 // PingStatement contains the structure for a "PING ON" command
 type PingStatement struct {
+	on        bool
 	operation string
 }
 

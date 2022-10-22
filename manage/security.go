@@ -105,7 +105,7 @@ func (sdb *SecureDB) Authenticate(username, password string) error {
 
 // Ping will subscribe the currently active user to the
 // passed in event. Only admins can use this method
-func (sdb *SecureDB) Ping(event string) error {
+func (sdb *SecureDB) Ping(event string, on bool) error {
 	if !sdb.Authorize(AdminAccess) {
 		return deniedErr()
 	}
@@ -118,7 +118,12 @@ func (sdb *SecureDB) Ping(event string) error {
 	username := sdb.activeClient.Username
 	password := sdb.activeClient.Password
 	access := sdb.activeClient.Access
-	events := sdb.activeClient.Events.Set(ev)
+	var events Events = make(Events, 1)
+	if on {
+		events = sdb.activeClient.Events.Set(ev)
+	} else {
+		events = sdb.activeClient.Events.Unset(ev)
+	}
 
 	// Change the currently active client
 	sdb.ChangeActiveClient(username, password, access, events)
@@ -144,7 +149,8 @@ func (sdb *SecureDB) ChangeActiveClient(username, password string, access Access
 // IsSubscribed returns true if the active client has subscribed
 // to the mentioned event
 func (sdb *SecureDB) IsSubscribed(event Event) bool {
-	return sdb.activeClient.Events.Exists(event)
+	_, exists := sdb.activeClient.Events.Exists(event)
+	return exists
 }
 
 // ========================= HELPER FUNCTIONS =============================

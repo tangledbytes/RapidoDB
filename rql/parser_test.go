@@ -174,6 +174,23 @@ func TestParse(t *testing.T) {
 					{
 						PingStatement: &PingStatement{
 							operation: "get",
+							on:        true,
+						},
+						Typ: PingType,
+					},
+				},
+			},
+			false,
+		},
+		{
+			"VALID UNPING STATEMENT",
+			args{`PING OFF GET;`},
+			&Ast{
+				Statements: []*Statement{
+					{
+						PingStatement: &PingStatement{
+							operation: "get",
+							on:        false,
 						},
 						Typ: PingType,
 					},

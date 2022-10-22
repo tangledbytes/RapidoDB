@@ -55,23 +55,32 @@ type Events []Event
 // Set adds an event to the Events if it doesn't already
 // exits in the Events and returns a new Events object
 func (e Events) Set(event Event) Events {
-	if !e.Exists(event) {
+	if _, exists := e.Exists(event); !exists {
 		e = append(e, event)
 	}
 
 	return e
 }
 
+// Unset removes an event to the Events if it  already
+// exits in the Events and returns a new Events object
+func (e Events) Unset(event Event) Events {
+	if i, exists := e.Exists(event); exists {
+		e = append(e[0:i], e[i+1:]...)
+	}
+	return e
+}
+
 // Exists returns true if the given event
 // exists in the Events
-func (e Events) Exists(event Event) bool {
-	for _, ev := range e {
+func (e Events) Exists(event Event) (int, bool) {
+	for i, ev := range e {
 		if ev == event {
-			return true
+			return i, true
 		}
 	}
 
-	return false
+	return -1, false
 }
 
 // convertInterfaceSliceToEvents will attempt to convert an

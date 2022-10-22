@@ -25,7 +25,7 @@ func main() {
 	BACKUP := getEnv("HOME", "")
 
 	// Print the RapidoDB logo
-	fmt.Println(db.RapidoMSG)
+	fmt.Printf(db.RapidoMSG)
 
 	database := db.New(log.New(os.Stdout, "[RAPIDO DB]: ", log.LstdFlags), PORT, USER, PASS, BACKUP)
 
